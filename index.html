@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Meu VR — Dola</title>
+
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: sans-serif;
+    }
+
+    /* CÂMERA DO CELULAR */
+    #cameraVideo {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      display: none;
+    }
+
+    /* Tela inicial */
+    .entrada-tela {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle, #1a1a3a 0%, #000 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: opacity 0.6s ease;
+    }
+
+    .entrada-tela.escondida {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .titulo {
+      color: white;
+      font-size: 32px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px #44aaff;
+      text-align: center;
+    }
+
+    .subtitulo {
+      color: #88aaff;
+      font-size: 16px;
+      margin-bottom: 50px;
+      text-align: center;
+    }
+
+    .btn-vr {
+      padding: 18px 60px;
+      font-size: 22px;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(90deg, #0066ff, #00ccff);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(0,100,255,0.5);
+    }
+
+    /* Área VR */
+    .vr-container {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 200%;
+      height: 100%;
+      transform: translateX(-25%);
+      z-index: 2;
+    }
+
+    .vr-ativo .vr-container {
+      display: flex;
+    }
+
+    .vr-eye {
+      width: 50%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .vr-eye a-scene {
+      position: absolute !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .vr-eye canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Divisão central */
+    .divider {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: rgba(255,255,255,0.25);
+      z-index: 20;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    /* Botão fechar */
+    .btn-fechar {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: rgba(0,0,0,0.5);
+      border: none;
+      color: white;
+      font-size: 28px;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 50;
+      display: none;
+    }
+
+    .vr-ativo .btn-fechar {
+      display: block;
+    }
+
+    /* Mensagem de câmera */
+    #cameraStatus {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      color: white;
+      background: rgba(0,0,0,0.7);
+      padding: 10px 18px;
+      border-radius: 20px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body id="corpo">
+
+  <!-- CÂMERA REAL DO CELULAR -->
+  <video id="cameraVideo" autoplay playsinline muted></video>
+
+  <!-- Tela inicial -->
+  <div class="entrada-tela" id="telaEntrada">
+    <h1 class="titulo">🥽 REALIDADE VIRTUAL</h1>
+
+    <p class="subtitulo">
+      Coloque no óculos e mergulhe
+    </p>
+
+    <button class="btn-vr" id="btnEntrarVR">
+      ENTRAR EM VR
+    </button>
+  </div>
+
+  <!-- Status da câmera -->
+  <div id="cameraStatus">
+    Ativando câmera...
+  </div>
+
+  <!-- Fechar -->
+  <button class="btn-fechar" id="btnFechar">
+    ×
+  </button>
+
+  <!-- VR DIVIDIDO -->
+  <div class="vr-container" id="containerVR">
+
+    <!-- OLHO ESQUERDO -->
+    <div class="vr-eye">
+
+      <a-scene
+        embedded
+        background="color: #000011"
+        vr-mode-ui="enabled: false"
+        renderer="antialias: true; logarithmicDepthBuffer: true;">
+
+        <a-sky color="#050520"></a-sky>
+
+        <a-plane
+          position="0 -1 0"
+          rotation="-90 0 0"
+          width="100"
+          height="100"
+          color="#112233">
+        </a-plane>
+
+        <a-entity position="0 1.6 -3">
+
+          <a-box
+            position="0 0 0"
+            width="3.2"
+            height="1.8"
+            depth="0.1"
+            color="#00439C"
+            material="opacity: 0.85">
+          </a-box>
+
+          <a-text
+            value="MEU SISTEMA VR"
+            align="center"
+            position="0 0.3 0.06"
+            color="white"
+            font-size="0.4">
+          </a-text>
+
+          <a-text
+            value="Bem-vindo ao seu mundo"
+            align="center"
+            position="0 -0.2 0.06"
+            color="#88ccff"
+            font-size="0.2">
+          </a-text>
+
+        </a-entity>
+
+        <a-box
+          position="-2 0.5 -2"
+          color="#ff4444"
+          scale="0.5 0.5 0.5">
+        </a-box>
+
+        <a-box
+          position="2 1 -4"
+          color="#44ff44"
+          scale="0.5 0.5 0.5">
+        </a-box>
+
+        <a-box
+          position="-1 1.5 -5"
+          color="#4444ff"
+          scale="0.5 0.5 0.5">
+        </a-box>
+
+        <a-light
+          type="ambient"
+          intensity="0.4">
+        </a-light>
+
+        <a-light
+          type="point"
+          position="0 3 -2"
+          intensity="1.5"
+          color="#aaccff">
+        </a-light>
+
+        <a-entity
+          id="leftCamera"
+          camera="fov: 75; far: 1000"
+          position="-0.035 1.6 0">
+        </a-entity>
+
+      </a-scene>
+
+    </div>
+
+
+    <!-- OLHO DIREITO -->
+    <div class="vr-eye">
+
+      <a-scene
+        embedded
+        background="color: #000011"
+        vr-mode-ui="enabled: false"
+        renderer="antialias: true; logarithmicDepthBuffer: true;">
+
+        <a-sky color="#050520"></a-sky>
+
+        <a-plane
+          position="0 -1 0"
+          rotation="-90 0 0"
+          width="100"
+          height="100"
+          color="#112233">
+        </a-plane>
+
+        <a-entity position="0 1.6 -3">
+
+          <a-box
+            position="0 0 0"
+            width="3.2"
+            height="1.8"
+            depth="0.1"
+            color="#00439C"
+            material="opacity: 0.85">
+          </a-box>
+
+          <a-text
+            value="MEU SISTEMA VR"
+            align="center"
+            position="0 0.3 0.06"
+            color="white"
+            font-size="0.4">
+          </a-text>
+
+          <a-text
+            value="Bem-vindo ao seu mundo"
+            align="center"
+            position="0 -0.2 0.06"
+            color="#88ccff"
+            font-size="0.2">
+          </a-text>
+
+        </a-entity>
+
+        <a-box
+          position="-2 0.5 -2"
+          color="#ff4444"
+          scale="0.5 0.5 0.5">
+        </a-box>
+
+        <a-box
+          position="2 1 -4"
+          color="#44ff44"
+          scale="0.5 0.5 0.5">
+        </a-box>
+
+        <a-box
+          position="-1 1.5 -5"
+          color="#4444ff"
+          scale="0.5 0.5 0.5">
+        </a-box>
+
+        <a-light
+          type="ambient"
+          intensity="0.4">
+        </a-light>
+
+        <a-light
+          type="point"
+          position="0 3 -2"
+          intensity="1.5"
+          color="#aaccff">
+        </a-light>
+
+        <a-entity
+          id="rightCamera"
+          camera="fov: 75; far: 1000"
+          position="0.035 1.6 0">
+        </a-entity>
+
+      </a-scene>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    const telaEntrada =
+      document.getElementById("telaEntrada");
+
+    const btnEntrarVR =
+      document.getElementById("btnEntrarVR");
+
+    const btnFechar =
+      document.getElementById("btnFechar");
+
+    const corpo =
+      document.getElementById("corpo");
+
+    const video =
+      document.getElementById("cameraVideo");
+
+    const status =
+      document.getElementById("cameraStatus");
+
+
+    /* =========================
+       ATIVAR CÂMERA TRASEIRA
+       ========================= */
+
+    async function iniciarCamera() {
+
+      status.style.display = "block";
+      status.textContent = "📷 Pedindo acesso à câmera...";
+
+      try {
+
+        const stream =
+          await navigator.mediaDevices.getUserMedia({
+
+            video: {
+              facingMode: {
+                ideal: "environment"
+              },
+
+              width: {
+                ideal: 1920
+              },
+
+              height: {
+                ideal: 1080
+              }
+            },
+
+            audio: false
+
+          });
+
+        video.srcObject = stream;
+
+        video.style.display = "block";
+
+        status.textContent = "📷 Câmera ativada";
+
+        setTimeout(() => {
+          status.style.display = "none";
+        }, 1500);
+
+      }
+
+      catch (erro) {
+
+        console.error(erro);
+
+        status.style.display = "block";
+
+        status.textContent =
+          "❌ Não foi possível acessar a câmera";
+
+      }
+
+    }
+
+
+    /* =========================
+       ENTRAR NO VR
+       ========================= */
+
+    btnEntrarVR.addEventListener("click", async () => {
+
+      telaEntrada.classList.add("escondida");
+
+      corpo.classList.add("vr-ativo");
+
+      await iniciarCamera();
+
+      try {
+
+        if (document.documentElement.requestFullscreen) {
+
+          await document.documentElement.requestFullscreen();
+
+        }
+
+      }
+
+      catch (erro) {
+
+        console.log(
+          "Fullscreen não disponível:",
+          erro
+        );
+
+      }
+
+    });
+
+
+    /* =========================
+       SAIR DO VR
+       ========================= */
+
+    btnFechar.addEventListener("click", () => {
+
+      corpo.classList.remove("vr-ativo");
+
+      telaEntrada.classList.remove("escondida");
+
+      video.style.display = "none";
+
+      if (video.srcObject) {
+
+        video.srcObject
+          .getTracks()
+          .forEach(track => track.stop());
+
+        video.srcObject = null;
+
+      }
+
+      if (document.fullscreenElement) {
+
+        document.exitFullscreen();
+
+      }
+
+    });
+
+
+    /* =========================
+       SINCRONIZAR CÂMERAS
+       ========================= */
+
+    const leftCam =
+      document.querySelector("#leftCamera");
+
+    const rightCam =
+      document.querySelector("#rightCamera");
+
+
+    function sincronizar() {
+
+      if (
+        leftCam &&
+        rightCam &&
+        leftCam.object3D &&
+        rightCam.object3D
+      ) {
+
+        rightCam.object3D.rotation.copy(
+          leftCam.object3D.rotation
+        );
+
+      }
+
+      requestAnimationFrame(sincronizar);
+
+    }
+
+    sincronizar();
+
+  </script>
+
+</body>
+          </html>
