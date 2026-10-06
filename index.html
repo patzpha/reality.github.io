@@ -1,555 +1,1394 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Meu VR — Dola</title>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0,
+               maximum-scale=1.0, user-scalable=no">
 
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<title>Meu VR — Realidade Mista</title>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-      font-family: sans-serif;
-    }
+<style>
 
-    /* CÂMERA DO CELULAR */
-    #cameraVideo {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: 0;
-      display: none;
-    }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    /* Tela inicial */
-    .entrada-tela {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle, #1a1a3a 0%, #000 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      transition: opacity 0.6s ease;
-    }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: Arial, sans-serif;
+}
 
-    .entrada-tela.escondida {
-      opacity: 0;
-      pointer-events: none;
-    }
+/* =====================================================
+   CÂMERA
+===================================================== */
 
-    .titulo {
-      color: white;
-      font-size: 32px;
-      margin-bottom: 10px;
-      text-shadow: 0 0 20px #44aaff;
-      text-align: center;
-    }
+#cameraVideo {
+  position: fixed;
+  inset: 0;
 
-    .subtitulo {
-      color: #88aaff;
-      font-size: 16px;
-      margin-bottom: 50px;
-      text-align: center;
-    }
+  width: 100%;
+  height: 100%;
 
-    .btn-vr {
-      padding: 18px 60px;
-      font-size: 22px;
-      font-weight: bold;
-      color: white;
-      background: linear-gradient(90deg, #0066ff, #00ccff);
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 0 25px rgba(0,100,255,0.5);
-    }
+  object-fit: cover;
 
-    /* Área VR */
-    .vr-container {
-      display: none;
-      position: fixed;
-      inset: 0;
-      width: 200%;
-      height: 100%;
-      transform: translateX(-25%);
-      z-index: 2;
-    }
+  z-index: 0;
 
-    .vr-ativo .vr-container {
-      display: flex;
-    }
+  display: none;
 
-    .vr-eye {
-      width: 50%;
-      height: 100%;
-      position: relative;
-      overflow: hidden;
-    }
+  transform: scaleX(1);
+}
 
-    .vr-eye a-scene {
-      position: absolute !important;
-      inset: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
-    }
+/* =====================================================
+   REALIDADE MISTA
+===================================================== */
 
-    .vr-eye canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
+#mixedLayer {
 
-    /* Divisão central */
-    .divider {
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 50%;
-      width: 2px;
-      background: rgba(255,255,255,0.25);
-      z-index: 20;
-      transform: translateX(-50%);
-      pointer-events: none;
-    }
+  position: fixed;
 
-    /* Botão fechar */
-    .btn-fechar {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      background: rgba(0,0,0,0.5);
-      border: none;
-      color: white;
-      font-size: 28px;
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      cursor: pointer;
-      z-index: 50;
-      display: none;
-    }
+  inset: 0;
 
-    .vr-ativo .btn-fechar {
-      display: block;
-    }
+  z-index: 1;
 
-    /* Mensagem de câmera */
-    #cameraStatus {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 200;
-      color: white;
-      background: rgba(0,0,0,0.7);
-      padding: 10px 18px;
-      border-radius: 20px;
-      display: none;
-    }
-  </style>
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      rgba(0,0,20,0.05),
+      rgba(0,0,20,0.05)
+    );
+}
+
+/* =====================================================
+   TELA DE ENTRADA
+===================================================== */
+
+#entrada {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1000;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+
+  text-align: center;
+
+  background:
+    radial-gradient(
+      circle at center,
+      #182060,
+      #020208 70%
+    );
+
+  color: white;
+}
+
+#entrada h1 {
+
+  font-size: 32px;
+
+  margin-bottom: 10px;
+
+  text-shadow:
+    0 0 15px #00aaff,
+    0 0 40px #0066ff;
+}
+
+#entrada p {
+
+  color: #9fcfff;
+
+  margin-bottom: 35px;
+}
+
+#entrar {
+
+  border: 0;
+
+  padding: 18px 55px;
+
+  border-radius: 50px;
+
+  font-size: 20px;
+
+  font-weight: bold;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      90deg,
+      #0055ff,
+      #00c8ff
+    );
+
+  box-shadow:
+    0 0 30px rgba(0,150,255,.6);
+}
+
+/* =====================================================
+   VR
+===================================================== */
+
+#vr {
+
+  display: none;
+
+  position: fixed;
+
+  inset: 0;
+
+  width: 200%;
+
+  height: 100%;
+
+  transform: translateX(-25%);
+
+  z-index: 5;
+}
+
+.vr-on #vr {
+  display: flex;
+}
+
+.eye {
+
+  width: 50%;
+
+  height: 100%;
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+.eye a-scene {
+
+  position: absolute !important;
+
+  inset: 0 !important;
+
+  width: 100% !important;
+
+  height: 100% !important;
+}
+
+/* =====================================================
+   DIVISÃO DOS OLHOS
+===================================================== */
+
+#divider {
+
+  position: fixed;
+
+  left: 50%;
+
+  top: 0;
+
+  bottom: 0;
+
+  width: 2px;
+
+  background:
+    rgba(255,255,255,.3);
+
+  z-index: 50;
+
+  transform:
+    translateX(-50%);
+}
+
+/* =====================================================
+   MIRA / RETÍCULO
+===================================================== */
+
+#reticle {
+
+  position: fixed;
+
+  left: 50%;
+
+  top: 50%;
+
+  width: 32px;
+
+  height: 32px;
+
+  transform:
+    translate(-50%,-50%);
+
+  z-index: 500;
+
+  pointer-events: none;
+}
+
+#reticle::before,
+#reticle::after {
+
+  content: "";
+
+  position: absolute;
+
+  background: white;
+
+  box-shadow:
+    0 0 8px #00ccff;
+}
+
+#reticle::before {
+
+  width: 32px;
+
+  height: 2px;
+
+  top: 15px;
+
+  left: 0;
+}
+
+#reticle::after {
+
+  width: 2px;
+
+  height: 32px;
+
+  left: 15px;
+
+  top: 0;
+}
+
+#reticleCircle {
+
+  position: absolute;
+
+  width: 10px;
+
+  height: 10px;
+
+  border:
+    2px solid white;
+
+  border-radius: 50%;
+
+  left: 11px;
+
+  top: 11px;
+}
+
+/* =====================================================
+   NAVEGADOR VR
+===================================================== */
+
+#browser {
+
+  position: fixed;
+
+  left: 50%;
+
+  top: 15%;
+
+  width: 380px;
+
+  height: 250px;
+
+  transform:
+    translateX(-50%);
+
+  z-index: 200;
+
+  display: none;
+
+  background:
+    rgba(5,10,25,.94);
+
+  border:
+    1px solid #159cff;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 0 35px rgba(0,140,255,.5);
+
+  overflow: hidden;
+
+  touch-action: none;
+}
+
+.vr-on #browser {
+  display: block;
+}
+
+#browserHeader {
+
+  height: 42px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 6px 10px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #07152f,
+      #102b55
+    );
+
+  cursor: move;
+}
+
+#browserHeader span {
+
+  color: white;
+
+  font-size: 13px;
+
+  font-weight: bold;
+
+  margin-right: 5px;
+}
+
+#googleSearch {
+
+  flex: 1;
+
+  height: 30px;
+
+  border: 0;
+
+  outline: 0;
+
+  border-radius: 15px;
+
+  padding:
+    0 12px;
+
+  background:
+    rgba(255,255,255,.12);
+
+  color: white;
+}
+
+#googleSearch::placeholder {
+  color: #9db2cc;
+}
+
+#searchBtn {
+
+  border: 0;
+
+  border-radius: 12px;
+
+  width: 32px;
+
+  height: 30px;
+
+  background: #168cff;
+
+  color: white;
+
+  font-size: 16px;
+}
+
+#googlePage {
+
+  height: calc(100% - 42px);
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-direction: column;
+
+  color: white;
+
+  text-align: center;
+}
+
+#googlePage h2 {
+
+  font-size: 30px;
+
+  margin-bottom: 10px;
+}
+
+#googlePage p {
+
+  color: #9eb8d8;
+
+  font-size: 13px;
+
+  margin-bottom: 15px;
+}
+
+#openGoogle {
+
+  border: 0;
+
+  padding:
+    11px 22px;
+
+  border-radius: 20px;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      90deg,
+      #1769ff,
+      #00b7ff
+    );
+
+  font-weight: bold;
+}
+
+/* =====================================================
+   REDIMENSIONAR
+===================================================== */
+
+#resizeHandle {
+
+  position: absolute;
+
+  right: 3px;
+
+  bottom: 3px;
+
+  width: 20px;
+
+  height: 20px;
+
+  cursor: nwse-resize;
+
+  border-right:
+    3px solid #19aaff;
+
+  border-bottom:
+    3px solid #19aaff;
+}
+
+/* =====================================================
+   TECLADO VR
+===================================================== */
+
+#keyboard {
+
+  position: fixed;
+
+  left: 50%;
+
+  bottom: 15px;
+
+  transform:
+    translateX(-50%);
+
+  z-index: 300;
+
+  width: min(95vw, 700px);
+
+  padding: 10px;
+
+  border:
+    1px solid rgba(0,180,255,.5);
+
+  border-radius: 18px;
+
+  background:
+    rgba(4,10,25,.92);
+
+  box-shadow:
+    0 0 30px rgba(0,130,255,.4);
+
+  display: none;
+}
+
+.vr-on #keyboard {
+  display: block;
+}
+
+.keyrow {
+
+  display: flex;
+
+  gap: 5px;
+
+  margin-bottom: 5px;
+
+  justify-content: center;
+}
+
+.key {
+
+  min-width: 30px;
+
+  height: 35px;
+
+  border: 0;
+
+  border-radius: 7px;
+
+  background:
+    #162d4d;
+
+  color: white;
+
+  font-size: 14px;
+
+  box-shadow:
+    inset 0 0 5px rgba(255,255,255,.08);
+}
+
+.key:active {
+
+  transform: scale(.92);
+
+  background: #087cff;
+}
+
+.key.space {
+
+  width: 230px;
+}
+
+/* =====================================================
+   BOTÃO SAIR
+===================================================== */
+
+#close {
+
+  position: fixed;
+
+  top: 12px;
+
+  left: 12px;
+
+  z-index: 600;
+
+  width: 42px;
+
+  height: 42px;
+
+  border: 0;
+
+  border-radius: 50%;
+
+  background:
+    rgba(0,0,0,.65);
+
+  color: white;
+
+  font-size: 25px;
+
+  display: none;
+}
+
+.vr-on #close {
+  display: block;
+}
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+#status {
+
+  position: fixed;
+
+  left: 50%;
+
+  bottom: 110px;
+
+  transform:
+    translateX(-50%);
+
+  z-index: 700;
+
+  color: white;
+
+  background:
+    rgba(0,0,0,.7);
+
+  padding:
+    9px 15px;
+
+  border-radius: 20px;
+
+  font-size: 13px;
+
+  display: none;
+}
+
+</style>
 </head>
 
-<body id="corpo">
+<body>
 
-  <!-- CÂMERA REAL DO CELULAR -->
-  <video id="cameraVideo" autoplay playsinline muted></video>
+<!-- =====================================================
+     CÂMERA
+===================================================== -->
 
-  <!-- Tela inicial -->
-  <div class="entrada-tela" id="telaEntrada">
-    <h1 class="titulo">🥽 REALIDADE VIRTUAL</h1>
+<video
+  id="cameraVideo"
+  autoplay
+  muted
+  playsinline>
+</video>
 
-    <p class="subtitulo">
-      Coloque no óculos e mergulhe
-    </p>
+<div id="mixedLayer"></div>
 
-    <button class="btn-vr" id="btnEntrarVR">
-      ENTRAR EM VR
-    </button>
-  </div>
 
-  <!-- Status da câmera -->
-  <div id="cameraStatus">
-    Ativando câmera...
-  </div>
+<!-- =====================================================
+     TELA INICIAL
+===================================================== -->
 
-  <!-- Fechar -->
-  <button class="btn-fechar" id="btnFechar">
-    ×
+<div id="entrada">
+
+  <h1>🥽 MEU VR</h1>
+
+  <p>
+    Realidade mista • Google • Teclado • VR
+  </p>
+
+  <button id="entrar">
+    ENTRAR EM VR
   </button>
 
-  <!-- VR DIVIDIDO -->
-  <div class="vr-container" id="containerVR">
-
-    <!-- OLHO ESQUERDO -->
-    <div class="vr-eye">
-
-      <a-scene
-        embedded
-        background="color: #000011"
-        vr-mode-ui="enabled: false"
-        renderer="antialias: true; logarithmicDepthBuffer: true;">
-
-        <a-sky color="#050520"></a-sky>
-
-        <a-plane
-          position="0 -1 0"
-          rotation="-90 0 0"
-          width="100"
-          height="100"
-          color="#112233">
-        </a-plane>
-
-        <a-entity position="0 1.6 -3">
-
-          <a-box
-            position="0 0 0"
-            width="3.2"
-            height="1.8"
-            depth="0.1"
-            color="#00439C"
-            material="opacity: 0.85">
-          </a-box>
-
-          <a-text
-            value="MEU SISTEMA VR"
-            align="center"
-            position="0 0.3 0.06"
-            color="white"
-            font-size="0.4">
-          </a-text>
-
-          <a-text
-            value="Bem-vindo ao seu mundo"
-            align="center"
-            position="0 -0.2 0.06"
-            color="#88ccff"
-            font-size="0.2">
-          </a-text>
-
-        </a-entity>
-
-        <a-box
-          position="-2 0.5 -2"
-          color="#ff4444"
-          scale="0.5 0.5 0.5">
-        </a-box>
-
-        <a-box
-          position="2 1 -4"
-          color="#44ff44"
-          scale="0.5 0.5 0.5">
-        </a-box>
-
-        <a-box
-          position="-1 1.5 -5"
-          color="#4444ff"
-          scale="0.5 0.5 0.5">
-        </a-box>
-
-        <a-light
-          type="ambient"
-          intensity="0.4">
-        </a-light>
-
-        <a-light
-          type="point"
-          position="0 3 -2"
-          intensity="1.5"
-          color="#aaccff">
-        </a-light>
-
-        <a-entity
-          id="leftCamera"
-          camera="fov: 75; far: 1000"
-          position="-0.035 1.6 0">
-        </a-entity>
-
-      </a-scene>
-
-    </div>
+</div>
 
 
-    <!-- OLHO DIREITO -->
-    <div class="vr-eye">
+<!-- =====================================================
+     STATUS
+===================================================== -->
 
-      <a-scene
-        embedded
-        background="color: #000011"
-        vr-mode-ui="enabled: false"
-        renderer="antialias: true; logarithmicDepthBuffer: true;">
+<div id="status">
+  Ativando câmera...
+</div>
 
-        <a-sky color="#050520"></a-sky>
 
-        <a-plane
-          position="0 -1 0"
-          rotation="-90 0 0"
-          width="100"
-          height="100"
-          color="#112233">
-        </a-plane>
+<!-- =====================================================
+     SAIR
+===================================================== -->
 
-        <a-entity position="0 1.6 -3">
+<button id="close">
+  ×
+</button>
 
-          <a-box
-            position="0 0 0"
-            width="3.2"
-            height="1.8"
-            depth="0.1"
-            color="#00439C"
-            material="opacity: 0.85">
-          </a-box>
 
-          <a-text
-            value="MEU SISTEMA VR"
-            align="center"
-            position="0 0.3 0.06"
-            color="white"
-            font-size="0.4">
-          </a-text>
+<!-- =====================================================
+     RETÍCULO / MIRA
+===================================================== -->
 
-          <a-text
-            value="Bem-vindo ao seu mundo"
-            align="center"
-            position="0 -0.2 0.06"
-            color="#88ccff"
-            font-size="0.2">
-          </a-text>
+<div id="reticle">
+  <div id="reticleCircle"></div>
+</div>
 
-        </a-entity>
 
-        <a-box
-          position="-2 0.5 -2"
-          color="#ff4444"
-          scale="0.5 0.5 0.5">
-        </a-box>
+<!-- =====================================================
+     VR DIVIDIDO
+===================================================== -->
 
-        <a-box
-          position="2 1 -4"
-          color="#44ff44"
-          scale="0.5 0.5 0.5">
-        </a-box>
+<div id="vr">
 
-        <a-box
-          position="-1 1.5 -5"
-          color="#4444ff"
-          scale="0.5 0.5 0.5">
-        </a-box>
+  <!-- OLHO ESQUERDO -->
 
-        <a-light
-          type="ambient"
-          intensity="0.4">
-        </a-light>
+  <div class="eye">
 
-        <a-light
-          type="point"
-          position="0 3 -2"
-          intensity="1.5"
-          color="#aaccff">
-        </a-light>
+    <a-scene
+      embedded
+      vr-mode-ui="enabled:false"
+      background="color:#000000">
 
-        <a-entity
-          id="rightCamera"
-          camera="fov: 75; far: 1000"
-          position="0.035 1.6 0">
-        </a-entity>
+      <a-sky color="#03030d"></a-sky>
 
-      </a-scene>
+      <a-entity
+        camera
+        position="-0.035 1.6 0"
+        look-controls="enabled:true">
+      </a-entity>
 
-    </div>
+      <a-light
+        type="ambient"
+        intensity=".5">
+      </a-light>
+
+      <a-box
+        position="0 1.6 -4"
+        width="3"
+        height="1.7"
+        depth=".1"
+        color="#0757b8"
+        material="opacity:.75">
+      </a-box>
+
+      <a-text
+        value="REALIDADE MISTA"
+        align="center"
+        position="0 1.8 -3.9"
+        color="#ffffff"
+        width="4">
+      </a-text>
+
+    </a-scene>
 
   </div>
 
 
-  <script>
+  <!-- OLHO DIREITO -->
 
-    const telaEntrada =
-      document.getElementById("telaEntrada");
+  <div class="eye">
 
-    const btnEntrarVR =
-      document.getElementById("btnEntrarVR");
+    <a-scene
+      embedded
+      vr-mode-ui="enabled:false"
+      background="color:#000000">
 
-    const btnFechar =
-      document.getElementById("btnFechar");
+      <a-sky color="#03030d"></a-sky>
 
-    const corpo =
-      document.getElementById("corpo");
+      <a-entity
+        camera
+        position="0.035 1.6 0"
+        look-controls="enabled:true">
+      </a-entity>
 
-    const video =
-      document.getElementById("cameraVideo");
+      <a-light
+        type="ambient"
+        intensity=".5">
+      </a-light>
 
-    const status =
-      document.getElementById("cameraStatus");
+      <a-box
+        position="0 1.6 -4"
+        width="3"
+        height="1.7"
+        depth=".1"
+        color="#0757b8"
+        material="opacity:.75">
+      </a-box>
+
+      <a-text
+        value="REALIDADE MISTA"
+        align="center"
+        position="0 1.8 -3.9"
+        color="#ffffff"
+        width="4">
+      </a-text>
+
+    </a-scene>
+
+  </div>
+
+</div>
 
 
-    /* =========================
-       ATIVAR CÂMERA TRASEIRA
-       ========================= */
+<div id="divider"></div>
 
-    async function iniciarCamera() {
 
-      status.style.display = "block";
-      status.textContent = "📷 Pedindo acesso à câmera...";
+<!-- =====================================================
+     NAVEGADOR VR
+===================================================== -->
 
-      try {
+<div id="browser">
 
-        const stream =
-          await navigator.mediaDevices.getUserMedia({
+  <div id="browserHeader">
 
-            video: {
-              facingMode: {
-                ideal: "environment"
-              },
+    <span>🌐</span>
 
-              width: {
-                ideal: 1920
-              },
+    <input
+      id="googleSearch"
+      type="text"
+      placeholder="Pesquisar no Google...">
 
-              height: {
-                ideal: 1080
-              }
-            },
+    <button id="searchBtn">
+      🔎
+    </button>
 
-            audio: false
+  </div>
 
-          });
 
-        video.srcObject = stream;
+  <div id="googlePage">
 
-        video.style.display = "block";
+    <h2>Google</h2>
 
-        status.textContent = "📷 Câmera ativada";
+    <p>
+      Pesquise usando o teclado VR
+    </p>
 
-        setTimeout(() => {
-          status.style.display = "none";
-        }, 1500);
+    <button id="openGoogle">
+      🌐 ABRIR GOOGLE
+    </button>
 
-      }
+  </div>
 
-      catch (erro) {
 
-        console.error(erro);
+  <div id="resizeHandle"></div>
 
-        status.style.display = "block";
+</div>
 
-        status.textContent =
-          "❌ Não foi possível acessar a câmera";
 
-      }
+<!-- =====================================================
+     TECLADO
+===================================================== -->
+
+<div id="keyboard">
+
+  <div class="keyrow">
+
+    <button class="key">Q</button>
+    <button class="key">W</button>
+    <button class="key">E</button>
+    <button class="key">R</button>
+    <button class="key">T</button>
+    <button class="key">Y</button>
+    <button class="key">U</button>
+    <button class="key">I</button>
+    <button class="key">O</button>
+    <button class="key">P</button>
+
+  </div>
+
+  <div class="keyrow">
+
+    <button class="key">A</button>
+    <button class="key">S</button>
+    <button class="key">D</button>
+    <button class="key">F</button>
+    <button class="key">G</button>
+    <button class="key">H</button>
+    <button class="key">J</button>
+    <button class="key">K</button>
+    <button class="key">L</button>
+
+  </div>
+
+  <div class="keyrow">
+
+    <button class="key">Z</button>
+    <button class="key">X</button>
+    <button class="key">C</button>
+    <button class="key">V</button>
+    <button class="key">B</button>
+    <button class="key">N</button>
+    <button class="key">M</button>
+    <button class="key">.</button>
+
+  </div>
+
+  <div class="keyrow">
+
+    <button class="key" data-action="backspace">
+      ⌫
+    </button>
+
+    <button class="key space" data-action="space">
+      ESPAÇO
+    </button>
+
+    <button class="key" data-action="enter">
+      ↵
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   ELEMENTOS
+===================================================== */
+
+const entrada =
+  document.getElementById("entrada");
+
+const entrar =
+  document.getElementById("entrar");
+
+const fechar =
+  document.getElementById("close");
+
+const corpo =
+  document.body;
+
+const video =
+  document.getElementById("cameraVideo");
+
+const status =
+  document.getElementById("status");
+
+const pesquisa =
+  document.getElementById("googleSearch");
+
+const abrirGoogle =
+  document.getElementById("openGoogle");
+
+const searchBtn =
+  document.getElementById("searchBtn");
+
+
+/* =====================================================
+   CÂMERA
+===================================================== */
+
+async function iniciarCamera() {
+
+  status.style.display = "block";
+
+  status.textContent =
+    "📷 Pedindo acesso à câmera...";
+
+  try {
+
+    const stream =
+      await navigator.mediaDevices.getUserMedia({
+
+        video: {
+          facingMode: {
+            ideal: "environment"
+          },
+
+          width: {
+            ideal: 1920
+          },
+
+          height: {
+            ideal: 1080
+          }
+
+        },
+
+        audio: false
+
+      });
+
+    video.srcObject = stream;
+
+    video.style.display = "block";
+
+    status.textContent =
+      "📷 Câmera ativada";
+
+    setTimeout(() => {
+
+      status.style.display = "none";
+
+    }, 1500);
+
+  }
+
+  catch (error) {
+
+    console.error(error);
+
+    status.textContent =
+      "❌ Permissão da câmera recusada";
+
+  }
+
+}
+
+
+/* =====================================================
+   ENTRAR
+===================================================== */
+
+entrar.addEventListener("click", async () => {
+
+  entrada.style.display = "none";
+
+  corpo.classList.add("vr-on");
+
+  await iniciarCamera();
+
+  try {
+
+    await document.documentElement.requestFullscreen();
+
+  } catch (e) {}
+
+});
+
+
+/* =====================================================
+   SAIR
+===================================================== */
+
+fechar.addEventListener("click", () => {
+
+  corpo.classList.remove("vr-on");
+
+  entrada.style.display = "flex";
+
+  video.style.display = "none";
+
+  if (video.srcObject) {
+
+    video.srcObject
+      .getTracks()
+      .forEach(track => track.stop());
+
+    video.srcObject = null;
+
+  }
+
+  if (document.fullscreenElement) {
+
+    document.exitFullscreen();
+
+  }
+
+});
+
+
+/* =====================================================
+   GOOGLE
+===================================================== */
+
+function pesquisarGoogle() {
+
+  const texto =
+    pesquisa.value.trim();
+
+  if (!texto)
+    return;
+
+  window.open(
+    "https://www.google.com/search?q=" +
+    encodeURIComponent(texto),
+    "_blank"
+  );
+
+}
+
+searchBtn.addEventListener(
+  "click",
+  pesquisarGoogle
+);
+
+abrirGoogle.addEventListener(
+  "click",
+  () => {
+
+    window.open(
+      "https://www.google.com/",
+      "_blank"
+    );
+
+  }
+);
+
+pesquisa.addEventListener(
+  "keydown",
+  event => {
+
+    if (event.key === "Enter") {
+
+      pesquisarGoogle();
 
     }
 
+  }
+);
 
-    /* =========================
-       ENTRAR NO VR
-       ========================= */
 
-    btnEntrarVR.addEventListener("click", async () => {
+/* =====================================================
+   TECLADO VR
+===================================================== */
 
-      telaEntrada.classList.add("escondida");
+document
+  .querySelectorAll(".key")
+  .forEach(button => {
 
-      corpo.classList.add("vr-ativo");
+    button.addEventListener("click", () => {
 
-      await iniciarCamera();
+      const action =
+        button.dataset.action;
 
-      try {
+      if (action === "space") {
 
-        if (document.documentElement.requestFullscreen) {
+        pesquisa.value += " ";
 
-          await document.documentElement.requestFullscreen();
+        pesquisa.focus();
 
-        }
-
+        return;
       }
 
-      catch (erro) {
+      if (action === "backspace") {
 
-        console.log(
-          "Fullscreen não disponível:",
-          erro
-        );
+        pesquisa.value =
+          pesquisa.value.slice(0, -1);
 
+        pesquisa.focus();
+
+        return;
       }
+
+      if (action === "enter") {
+
+        pesquisarGoogle();
+
+        return;
+      }
+
+      pesquisa.value +=
+        button.textContent;
+
+      pesquisa.focus();
 
     });
 
-
-    /* =========================
-       SAIR DO VR
-       ========================= */
-
-    btnFechar.addEventListener("click", () => {
-
-      corpo.classList.remove("vr-ativo");
-
-      telaEntrada.classList.remove("escondida");
-
-      video.style.display = "none";
-
-      if (video.srcObject) {
-
-        video.srcObject
-          .getTracks()
-          .forEach(track => track.stop());
-
-        video.srcObject = null;
-
-      }
-
-      if (document.fullscreenElement) {
-
-        document.exitFullscreen();
-
-      }
-
-    });
+  });
 
 
-    /* =========================
-       SINCRONIZAR CÂMERAS
-       ========================= */
+/* =====================================================
+   JANELA ARRASTÁVEL
+===================================================== */
 
-    const leftCam =
-      document.querySelector("#leftCamera");
+const browser =
+  document.getElementById("browser");
 
-    const rightCam =
-      document.querySelector("#rightCamera");
+const header =
+  document.getElementById("browserHeader");
+
+let dragging = false;
+
+let offsetX = 0;
+let offsetY = 0;
 
 
-    function sincronizar() {
+function iniciarArrasto(e) {
 
-      if (
-        leftCam &&
-        rightCam &&
-        leftCam.object3D &&
-        rightCam.object3D
-      ) {
+  dragging = true;
 
-        rightCam.object3D.rotation.copy(
-          leftCam.object3D.rotation
-        );
+  const p =
+    e.touches
+      ? e.touches[0]
+      : e;
 
-      }
+  const rect =
+    browser.getBoundingClientRect();
 
-      requestAnimationFrame(sincronizar);
+  offsetX =
+    p.clientX - rect.left;
 
-    }
+  offsetY =
+    p.clientY - rect.top;
 
-    sincronizar();
+}
 
-  </script>
+
+function moverArrasto(e) {
+
+  if (!dragging)
+    return;
+
+  const p =
+    e.touches
+      ? e.touches[0]
+      : e;
+
+  let x =
+    p.clientX - offsetX;
+
+  let y =
+    p.clientY - offsetY;
+
+  x =
+    Math.max(
+      5,
+      Math.min(
+        window.innerWidth -
+        browser.offsetWidth - 5,
+        x
+      )
+    );
+
+  y =
+    Math.max(
+      5,
+      Math.min(
+        window.innerHeight -
+        browser.offsetHeight - 5,
+        y
+      )
+    );
+
+  browser.style.left =
+    x + "px";
+
+  browser.style.top =
+    y + "px";
+
+  browser.style.transform =
+    "none";
+
+}
+
+
+function pararArrasto() {
+
+  dragging = false;
+
+}
+
+
+header.addEventListener(
+  "mousedown",
+  iniciarArrasto
+);
+
+document.addEventListener(
+  "mousemove",
+  moverArrasto
+);
+
+document.addEventListener(
+  "mouseup",
+  pararArrasto
+);
+
+
+header.addEventListener(
+  "touchstart",
+  iniciarArrasto,
+  {passive:false}
+);
+
+document.addEventListener(
+  "touchmove",
+  moverArrasto,
+  {passive:false}
+);
+
+document.addEventListener(
+  "touchend",
+  pararArrasto
+);
+
+
+/* =====================================================
+   REDIMENSIONAR
+===================================================== */
+
+const resize =
+  document.getElementById("resizeHandle");
+
+let resizing = false;
+
+let startX;
+let startY;
+
+let startWidth;
+let startHeight;
+
+
+resize.addEventListener(
+  "mousedown",
+  e => {
+
+    resizing = true;
+
+    startX = e.clientX;
+    startY = e.clientY;
+
+    startWidth =
+      browser.offsetWidth;
+
+    startHeight =
+      browser.offsetHeight;
+
+    e.preventDefault();
+
+  }
+);
+
+
+document.addEventListener(
+  "mousemove",
+  e => {
+
+    if (!resizing)
+      return;
+
+    const newWidth =
+      startWidth +
+      (e.clientX - startX);
+
+    const newHeight =
+      startHeight +
+      (e.clientY - startY);
+
+    browser.style.width =
+      Math.max(250, newWidth) + "px";
+
+    browser.style.height =
+      Math.max(180, newHeight) + "px";
+
+  }
+);
+
+
+document.addEventListener(
+  "mouseup",
+  () => {
+
+    resizing = false;
+
+  }
+);
+
+
+/* =====================================================
+   MIRA / RETÍCULO
+   FICA NO CENTRO DA VISÃO
+===================================================== */
+
+let reticleTimer = null;
+
+document.addEventListener(
+  "click",
+  e => {
+
+    const reticle =
+      document.getElementById("reticle");
+
+    reticle.style.transform =
+      "translate(-50%,-50%) scale(1.3)";
+
+    clearTimeout(reticleTimer);
+
+    reticleTimer =
+      setTimeout(() => {
+
+        reticle.style.transform =
+          "translate(-50%,-50%) scale(1)";
+
+      }, 180);
+
+  }
+);
+
+</script>
 
 </body>
-          </html>
+</html>
