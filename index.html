@@ -2,1393 +2,229 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0,
-               maximum-scale=1.0, user-scalable=no">
-
-<title>Meu VR — Realidade Mista</title>
-
-<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MetaVision Simples</title>
 <style>
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+* { margin: 0; padding: 0; box-sizing: border-box; }
 html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
   background: #000;
-  font-family: Arial, sans-serif;
+  font-family: sans-serif;
 }
-
-/* =====================================================
-   CÂMERA
-===================================================== */
-
-#cameraVideo {
+canvas {
   position: fixed;
-  inset: 0;
-
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-
-  object-fit: cover;
-
-  z-index: 0;
-
-  display: none;
-
-  transform: scaleX(1);
-}
-
-/* =====================================================
-   REALIDADE MISTA
-===================================================== */
-
-#mixedLayer {
-
-  position: fixed;
-
-  inset: 0;
-
   z-index: 1;
-
-  pointer-events: none;
-
-  background:
-    linear-gradient(
-      rgba(0,0,20,0.05),
-      rgba(0,0,20,0.05)
-    );
 }
-
-/* =====================================================
-   TELA DE ENTRADA
-===================================================== */
-
-#entrada {
-
-  position: fixed;
-
-  inset: 0;
-
-  z-index: 1000;
-
-  display: flex;
-
-  flex-direction: column;
-
-  justify-content: center;
-
-  align-items: center;
-
-  text-align: center;
-
-  background:
-    radial-gradient(
-      circle at center,
-      #182060,
-      #020208 70%
-    );
-
-  color: white;
-}
-
-#entrada h1 {
-
-  font-size: 32px;
-
-  margin-bottom: 10px;
-
-  text-shadow:
-    0 0 15px #00aaff,
-    0 0 40px #0066ff;
-}
-
-#entrada p {
-
-  color: #9fcfff;
-
-  margin-bottom: 35px;
-}
-
-#entrar {
-
-  border: 0;
-
-  padding: 18px 55px;
-
-  border-radius: 50px;
-
-  font-size: 20px;
-
-  font-weight: bold;
-
-  color: white;
-
-  background:
-    linear-gradient(
-      90deg,
-      #0055ff,
-      #00c8ff
-    );
-
-  box-shadow:
-    0 0 30px rgba(0,150,255,.6);
-}
-
-/* =====================================================
-   VR
-===================================================== */
-
-#vr {
-
-  display: none;
-
-  position: fixed;
-
-  inset: 0;
-
-  width: 200%;
-
-  height: 100%;
-
-  transform: translateX(-25%);
-
-  z-index: 5;
-}
-
-.vr-on #vr {
-  display: flex;
-}
-
-.eye {
-
-  width: 50%;
-
-  height: 100%;
-
-  position: relative;
-
-  overflow: hidden;
-}
-
-.eye a-scene {
-
-  position: absolute !important;
-
-  inset: 0 !important;
-
-  width: 100% !important;
-
-  height: 100% !important;
-}
-
-/* =====================================================
-   DIVISÃO DOS OLHOS
-===================================================== */
-
-#divider {
-
-  position: fixed;
-
-  left: 50%;
-
-  top: 0;
-
-  bottom: 0;
-
-  width: 2px;
-
-  background:
-    rgba(255,255,255,.3);
-
-  z-index: 50;
-
-  transform:
-    translateX(-50%);
-}
-
-/* =====================================================
-   MIRA / RETÍCULO
-===================================================== */
-
-#reticle {
-
-  position: fixed;
-
-  left: 50%;
-
-  top: 50%;
-
-  width: 32px;
-
-  height: 32px;
-
-  transform:
-    translate(-50%,-50%);
-
-  z-index: 500;
-
-  pointer-events: none;
-}
-
-#reticle::before,
-#reticle::after {
-
-  content: "";
-
+video {
   position: absolute;
-
-  background: white;
-
-  box-shadow:
-    0 0 8px #00ccff;
+  top: -9999px;
+  left: -9999px;
+  opacity: 0;
 }
-
-#reticle::before {
-
-  width: 32px;
-
-  height: 2px;
-
-  top: 15px;
-
+#menu {
+  position: fixed;
+  top: 0;
   left: 0;
+  width: 100%;
+  height: 100%;
+  background: #121212;
+  z-index: 100;
+  padding: 30px 20px;
+  overflow-y: auto;
 }
-
-#reticle::after {
-
-  width: 2px;
-
-  height: 32px;
-
-  left: 15px;
-
-  top: 0;
-}
-
-#reticleCircle {
-
-  position: absolute;
-
-  width: 10px;
-
-  height: 10px;
-
-  border:
-    2px solid white;
-
-  border-radius: 50%;
-
-  left: 11px;
-
-  top: 11px;
-}
-
-/* =====================================================
-   NAVEGADOR VR
-===================================================== */
-
-#browser {
-
-  position: fixed;
-
-  left: 50%;
-
-  top: 15%;
-
-  width: 380px;
-
-  height: 250px;
-
-  transform:
-    translateX(-50%);
-
-  z-index: 200;
-
-  display: none;
-
-  background:
-    rgba(5,10,25,.94);
-
-  border:
-    1px solid #159cff;
-
-  border-radius: 16px;
-
-  box-shadow:
-    0 0 35px rgba(0,140,255,.5);
-
-  overflow: hidden;
-
-  touch-action: none;
-}
-
-.vr-on #browser {
+#menu.escondido { display: none; }
+h1 { color: #fff; margin-bottom: 20px; text-align: center; }
+p { color: #aaa; margin-bottom: 30px; text-align: center; }
+button {
   display: block;
+  width: 100%;
+  padding: 15px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  cursor: pointer;
 }
-
-#browserHeader {
-
-  height: 42px;
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 7px;
-
-  padding: 6px 10px;
-
-  background:
-    linear-gradient(
-      90deg,
-      #07152f,
-      #102b55
-    );
-
-  cursor: move;
-}
-
-#browserHeader span {
-
-  color: white;
-
-  font-size: 13px;
-
+#entrar {
+  background: #8b7cf6;
+  color: #fff;
   font-weight: bold;
-
-  margin-right: 5px;
 }
-
-#googleSearch {
-
-  flex: 1;
-
-  height: 30px;
-
-  border: 0;
-
-  outline: 0;
-
-  border-radius: 15px;
-
-  padding:
-    0 12px;
-
-  background:
-    rgba(255,255,255,.12);
-
-  color: white;
+#config {
+  background: #333;
+  color: #fff;
 }
-
-#googleSearch::placeholder {
-  color: #9db2cc;
-}
-
-#searchBtn {
-
-  border: 0;
-
-  border-radius: 12px;
-
-  width: 32px;
-
-  height: 30px;
-
-  background: #168cff;
-
-  color: white;
-
-  font-size: 16px;
-}
-
-#googlePage {
-
-  height: calc(100% - 42px);
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  flex-direction: column;
-
-  color: white;
-
+#status {
+  color: #88ff88;
+  font-size: 14px;
+  margin-top: 15px;
   text-align: center;
 }
-
-#googlePage h2 {
-
-  font-size: 30px;
-
-  margin-bottom: 10px;
-}
-
-#googlePage p {
-
-  color: #9eb8d8;
-
-  font-size: 13px;
-
-  margin-bottom: 15px;
-}
-
-#openGoogle {
-
-  border: 0;
-
-  padding:
-    11px 22px;
-
-  border-radius: 20px;
-
-  color: white;
-
-  background:
-    linear-gradient(
-      90deg,
-      #1769ff,
-      #00b7ff
-    );
-
-  font-weight: bold;
-}
-
-/* =====================================================
-   REDIMENSIONAR
-===================================================== */
-
-#resizeHandle {
-
-  position: absolute;
-
-  right: 3px;
-
-  bottom: 3px;
-
-  width: 20px;
-
-  height: 20px;
-
-  cursor: nwse-resize;
-
-  border-right:
-    3px solid #19aaff;
-
-  border-bottom:
-    3px solid #19aaff;
-}
-
-/* =====================================================
-   TECLADO VR
-===================================================== */
-
-#keyboard {
-
-  position: fixed;
-
-  left: 50%;
-
-  bottom: 15px;
-
-  transform:
-    translateX(-50%);
-
-  z-index: 300;
-
-  width: min(95vw, 700px);
-
-  padding: 10px;
-
-  border:
-    1px solid rgba(0,180,255,.5);
-
-  border-radius: 18px;
-
-  background:
-    rgba(4,10,25,.92);
-
-  box-shadow:
-    0 0 30px rgba(0,130,255,.4);
-
-  display: none;
-}
-
-.vr-on #keyboard {
-  display: block;
-}
-
-.keyrow {
-
-  display: flex;
-
-  gap: 5px;
-
-  margin-bottom: 5px;
-
-  justify-content: center;
-}
-
-.key {
-
-  min-width: 30px;
-
-  height: 35px;
-
-  border: 0;
-
-  border-radius: 7px;
-
-  background:
-    #162d4d;
-
-  color: white;
-
-  font-size: 14px;
-
-  box-shadow:
-    inset 0 0 5px rgba(255,255,255,.08);
-}
-
-.key:active {
-
-  transform: scale(.92);
-
-  background: #087cff;
-}
-
-.key.space {
-
-  width: 230px;
-}
-
-/* =====================================================
-   BOTÃO SAIR
-===================================================== */
-
-#close {
-
-  position: fixed;
-
-  top: 12px;
-
-  left: 12px;
-
-  z-index: 600;
-
-  width: 42px;
-
-  height: 42px;
-
-  border: 0;
-
-  border-radius: 50%;
-
-  background:
-    rgba(0,0,0,.65);
-
-  color: white;
-
-  font-size: 25px;
-
-  display: none;
-}
-
-.vr-on #close {
-  display: block;
-}
-
-/* =====================================================
-   STATUS
-===================================================== */
-
-#status {
-
-  position: fixed;
-
-  left: 50%;
-
-  bottom: 110px;
-
-  transform:
-    translateX(-50%);
-
-  z-index: 700;
-
-  color: white;
-
-  background:
-    rgba(0,0,0,.7);
-
-  padding:
-    9px 15px;
-
-  border-radius: 20px;
-
-  font-size: 13px;
-
-  display: none;
-}
-
 </style>
 </head>
-
 <body>
 
-<!-- =====================================================
-     CÂMERA
-===================================================== -->
+<video id="video" playsinline muted></video>
+<canvas id="tela"></canvas>
 
-<video
-  id="cameraVideo"
-  autoplay
-  muted
-  playsinline>
-</video>
-
-<div id="mixedLayer"></div>
-
-
-<!-- =====================================================
-     TELA INICIAL
-===================================================== -->
-
-<div id="entrada">
-
-  <h1>🥽 MEU VR</h1>
-
-  <p>
-    Realidade mista • Google • Teclado • VR
-  </p>
-
-  <button id="entrar">
-    ENTRAR EM VR
-  </button>
-
+<div id="menu">
+  <h1>🔮 MetaVision</h1>
+  <p>Toque em "Entrar" e permita a câmera quando solicitado.</p>
+  <button id="entrar">Entrar</button>
+  <p id="status"></p>
 </div>
 
-
-<!-- =====================================================
-     STATUS
-===================================================== -->
-
-<div id="status">
-  Ativando câmera...
-</div>
-
-
-<!-- =====================================================
-     SAIR
-===================================================== -->
-
-<button id="close">
-  ×
-</button>
-
-
-<!-- =====================================================
-     RETÍCULO / MIRA
-===================================================== -->
-
-<div id="reticle">
-  <div id="reticleCircle"></div>
-</div>
-
-
-<!-- =====================================================
-     VR DIVIDIDO
-===================================================== -->
-
-<div id="vr">
-
-  <!-- OLHO ESQUERDO -->
-
-  <div class="eye">
-
-    <a-scene
-      embedded
-      vr-mode-ui="enabled:false"
-      background="color:#000000">
-
-      <a-sky color="#03030d"></a-sky>
-
-      <a-entity
-        camera
-        position="-0.035 1.6 0"
-        look-controls="enabled:true">
-      </a-entity>
-
-      <a-light
-        type="ambient"
-        intensity=".5">
-      </a-light>
-
-      <a-box
-        position="0 1.6 -4"
-        width="3"
-        height="1.7"
-        depth=".1"
-        color="#0757b8"
-        material="opacity:.75">
-      </a-box>
-
-      <a-text
-        value="REALIDADE MISTA"
-        align="center"
-        position="0 1.8 -3.9"
-        color="#ffffff"
-        width="4">
-      </a-text>
-
-    </a-scene>
-
-  </div>
-
-
-  <!-- OLHO DIREITO -->
-
-  <div class="eye">
-
-    <a-scene
-      embedded
-      vr-mode-ui="enabled:false"
-      background="color:#000000">
-
-      <a-sky color="#03030d"></a-sky>
-
-      <a-entity
-        camera
-        position="0.035 1.6 0"
-        look-controls="enabled:true">
-      </a-entity>
-
-      <a-light
-        type="ambient"
-        intensity=".5">
-      </a-light>
-
-      <a-box
-        position="0 1.6 -4"
-        width="3"
-        height="1.7"
-        depth=".1"
-        color="#0757b8"
-        material="opacity:.75">
-      </a-box>
-
-      <a-text
-        value="REALIDADE MISTA"
-        align="center"
-        position="0 1.8 -3.9"
-        color="#ffffff"
-        width="4">
-      </a-text>
-
-    </a-scene>
-
-  </div>
-
-</div>
-
-
-<div id="divider"></div>
-
-
-<!-- =====================================================
-     NAVEGADOR VR
-===================================================== -->
-
-<div id="browser">
-
-  <div id="browserHeader">
-
-    <span>🌐</span>
-
-    <input
-      id="googleSearch"
-      type="text"
-      placeholder="Pesquisar no Google...">
-
-    <button id="searchBtn">
-      🔎
-    </button>
-
-  </div>
-
-
-  <div id="googlePage">
-
-    <h2>Google</h2>
-
-    <p>
-      Pesquise usando o teclado VR
-    </p>
-
-    <button id="openGoogle">
-      🌐 ABRIR GOOGLE
-    </button>
-
-  </div>
-
-
-  <div id="resizeHandle"></div>
-
-</div>
-
-
-<!-- =====================================================
-     TECLADO
-===================================================== -->
-
-<div id="keyboard">
-
-  <div class="keyrow">
-
-    <button class="key">Q</button>
-    <button class="key">W</button>
-    <button class="key">E</button>
-    <button class="key">R</button>
-    <button class="key">T</button>
-    <button class="key">Y</button>
-    <button class="key">U</button>
-    <button class="key">I</button>
-    <button class="key">O</button>
-    <button class="key">P</button>
-
-  </div>
-
-  <div class="keyrow">
-
-    <button class="key">A</button>
-    <button class="key">S</button>
-    <button class="key">D</button>
-    <button class="key">F</button>
-    <button class="key">G</button>
-    <button class="key">H</button>
-    <button class="key">J</button>
-    <button class="key">K</button>
-    <button class="key">L</button>
-
-  </div>
-
-  <div class="keyrow">
-
-    <button class="key">Z</button>
-    <button class="key">X</button>
-    <button class="key">C</button>
-    <button class="key">V</button>
-    <button class="key">B</button>
-    <button class="key">N</button>
-    <button class="key">M</button>
-    <button class="key">.</button>
-
-  </div>
-
-  <div class="keyrow">
-
-    <button class="key" data-action="backspace">
-      ⌫
-    </button>
-
-    <button class="key space" data-action="space">
-      ESPAÇO
-    </button>
-
-    <button class="key" data-action="enter">
-      ↵
-    </button>
-
-  </div>
-
-</div>
-
-
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js"></script>
 <script>
+// ELEMENTOS
+const tela = document.getElementById('tela');
+const video = document.getElementById('video');
+const menu = document.getElementById('menu');
+const status = document.getElementById('status');
+const ctx = tela.getContext('2d');
 
-/* =====================================================
-   ELEMENTOS
-===================================================== */
-
-const entrada =
-  document.getElementById("entrada");
-
-const entrar =
-  document.getElementById("entrar");
-
-const fechar =
-  document.getElementById("close");
-
-const corpo =
-  document.body;
-
-const video =
-  document.getElementById("cameraVideo");
-
-const status =
-  document.getElementById("status");
-
-const pesquisa =
-  document.getElementById("googleSearch");
-
-const abrirGoogle =
-  document.getElementById("openGoogle");
-
-const searchBtn =
-  document.getElementById("searchBtn");
-
-
-/* =====================================================
-   CÂMERA
-===================================================== */
-
-async function iniciarCamera() {
-
-  status.style.display = "block";
-
-  status.textContent =
-    "📷 Pedindo acesso à câmera...";
-
+// CÂMERA SIMPLES
+let cameraLigada = false;
+async function ligarCamera() {
+  status.textContent = "Solicitando câmera...";
   try {
-
-    const stream =
-      await navigator.mediaDevices.getUserMedia({
-
-        video: {
-          facingMode: {
-            ideal: "environment"
-          },
-
-          width: {
-            ideal: 1920
-          },
-
-          height: {
-            ideal: 1080
-          }
-
-        },
-
-        audio: false
-
-      });
-
-    video.srcObject = stream;
-
-    video.style.display = "block";
-
-    status.textContent =
-      "📷 Câmera ativada";
-
-    setTimeout(() => {
-
-      status.style.display = "none";
-
-    }, 1500);
-
-  }
-
-  catch (error) {
-
-    console.error(error);
-
-    status.textContent =
-      "❌ Permissão da câmera recusada";
-
-  }
-
-}
-
-
-/* =====================================================
-   ENTRAR
-===================================================== */
-
-entrar.addEventListener("click", async () => {
-
-  entrada.style.display = "none";
-
-  corpo.classList.add("vr-on");
-
-  await iniciarCamera();
-
-  try {
-
-    await document.documentElement.requestFullscreen();
-
-  } catch (e) {}
-
-});
-
-
-/* =====================================================
-   SAIR
-===================================================== */
-
-fechar.addEventListener("click", () => {
-
-  corpo.classList.remove("vr-on");
-
-  entrada.style.display = "flex";
-
-  video.style.display = "none";
-
-  if (video.srcObject) {
-
-    video.srcObject
-      .getTracks()
-      .forEach(track => track.stop());
-
-    video.srcObject = null;
-
-  }
-
-  if (document.fullscreenElement) {
-
-    document.exitFullscreen();
-
-  }
-
-});
-
-
-/* =====================================================
-   GOOGLE
-===================================================== */
-
-function pesquisarGoogle() {
-
-  const texto =
-    pesquisa.value.trim();
-
-  if (!texto)
-    return;
-
-  window.open(
-    "https://www.google.com/search?q=" +
-    encodeURIComponent(texto),
-    "_blank"
-  );
-
-}
-
-searchBtn.addEventListener(
-  "click",
-  pesquisarGoogle
-);
-
-abrirGoogle.addEventListener(
-  "click",
-  () => {
-
-    window.open(
-      "https://www.google.com/",
-      "_blank"
-    );
-
-  }
-);
-
-pesquisa.addEventListener(
-  "keydown",
-  event => {
-
-    if (event.key === "Enter") {
-
-      pesquisarGoogle();
-
-    }
-
-  }
-);
-
-
-/* =====================================================
-   TECLADO VR
-===================================================== */
-
-document
-  .querySelectorAll(".key")
-  .forEach(button => {
-
-    button.addEventListener("click", () => {
-
-      const action =
-        button.dataset.action;
-
-      if (action === "space") {
-
-        pesquisa.value += " ";
-
-        pesquisa.focus();
-
-        return;
-      }
-
-      if (action === "backspace") {
-
-        pesquisa.value =
-          pesquisa.value.slice(0, -1);
-
-        pesquisa.focus();
-
-        return;
-      }
-
-      if (action === "enter") {
-
-        pesquisarGoogle();
-
-        return;
-      }
-
-      pesquisa.value +=
-        button.textContent;
-
-      pesquisa.focus();
-
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { facingMode: 'environment', width: 1280, height: 720 },
+      audio: false
     });
-
-  });
-
-
-/* =====================================================
-   JANELA ARRASTÁVEL
-===================================================== */
-
-const browser =
-  document.getElementById("browser");
-
-const header =
-  document.getElementById("browserHeader");
-
-let dragging = false;
-
-let offsetX = 0;
-let offsetY = 0;
-
-
-function iniciarArrasto(e) {
-
-  dragging = true;
-
-  const p =
-    e.touches
-      ? e.touches[0]
-      : e;
-
-  const rect =
-    browser.getBoundingClientRect();
-
-  offsetX =
-    p.clientX - rect.left;
-
-  offsetY =
-    p.clientY - rect.top;
-
+    video.srcObject = stream;
+    await video.play();
+    cameraLigada = true;
+    status.textContent = "✅ Câmera ativa!";
+    menu.classList.add('escondido');
+    iniciar();
+  } catch (erro) {
+    status.textContent = "❌ Erro: " + erro.message;
+    console.error(erro);
+  }
 }
 
+// AJUSTAR TELA
+function ajustarTela() {
+  tela.width = window.innerWidth;
+  tela.height = window.innerHeight;
+}
+window.addEventListener('resize', ajustarTela);
+ajustarTela();
 
-function moverArrasto(e) {
+// VARIÁVEIS
+let maos = null;
+let temMao = false;
+let pontosMao = [];
 
-  if (!dragging)
+// INICIAR MEDIAPIPE
+async function iniciarMao() {
+  if (typeof Hands === 'undefined') {
+    status.textContent += "\n⚠️ Biblioteca da mão não carregou";
     return;
-
-  const p =
-    e.touches
-      ? e.touches[0]
-      : e;
-
-  let x =
-    p.clientX - offsetX;
-
-  let y =
-    p.clientY - offsetY;
-
-  x =
-    Math.max(
-      5,
-      Math.min(
-        window.innerWidth -
-        browser.offsetWidth - 5,
-        x
-      )
-    );
-
-  y =
-    Math.max(
-      5,
-      Math.min(
-        window.innerHeight -
-        browser.offsetHeight - 5,
-        y
-      )
-    );
-
-  browser.style.left =
-    x + "px";
-
-  browser.style.top =
-    y + "px";
-
-  browser.style.transform =
-    "none";
-
+  }
+  maos = new Hands({locateFile: (file) => {
+    return 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/' + file;
+  }});
+  maos.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 0,
+    minDetectionConfidence: 0.5
+  });
+  maos.onResults((resultado) => {
+    if (resultado.multiHandLandmarks && resultado.multiHandLandmarks.length > 0) {
+      temMao = true;
+      pontosMao = resultado.multiHandLandmarks[0];
+    } else {
+      temMao = false;
+    }
+  });
+  status.textContent += "\n✅ Rastreamento de mão pronto!";
 }
 
-
-function pararArrasto() {
-
-  dragging = false;
-
+// LOOP PRINCIPAL
+async function loop() {
+  requestAnimationFrame(loop);
+  
+  // Desenhar câmera
+  if (cameraLigada && video.readyState >= 2) {
+    ctx.drawImage(video, 0, 0, tela.width, tela.height);
+    
+    // Enviar imagem para detecção de mão
+    if (maos) {
+      try {
+        await maos.send({image: video});
+      } catch(e) {}
+    }
+    
+    // Desenhar mão simples
+    if (temMao && pontosMao.length > 0) {
+      const escalaX = tela.width;
+      const escalaY = tela.height;
+      
+      // Desenhar pontos suaves
+      for (let i = 0; i < pontosMao.length; i++) {
+        const x = pontosMao[i].x * escalaX;
+        const y = pontosMao[i].y * escalaY;
+        
+        // Junta principal (pulso) maior e diferente
+        if (i === 0) {
+          ctx.beginPath();
+          ctx.arc(x, y, 12, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(100, 180, 255, 0.8)';
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        } else {
+          // Outras juntas
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(200, 230, 255, 0.6)';
+          ctx.fill();
+        }
+      }
+      
+      // Desenhar linhas SUAVES entre os dedos
+      ctx.strokeStyle = 'rgba(200, 230, 255, 0.4)';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      
+      const ligacoes = [
+        [0, 1], [1, 2], [2, 3], [3, 4],
+        [0, 5], [5, 6], [6, 7], [7, 8],
+        [5, 9], [9, 10], [10, 11], [11, 12],
+        [9, 13], [13, 14], [14, 15], [15, 16],
+        [13, 17], [17, 18], [18, 19], [19, 20],
+        [0, 17]
+      ];
+      
+      ligacoes.forEach(([a, b]) => {
+        ctx.beginPath();
+        ctx.moveTo(pontosMao[a].x * escalaX, pontosMao[a].y * escalaY);
+        ctx.lineTo(pontosMao[b].x * escalaX, pontosMao[b].y * escalaY);
+        ctx.stroke();
+      });
+    }
+  }
 }
 
+// INICIAR TUDO
+function iniciar() {
+  iniciarMao();
+  loop();
+}
 
-header.addEventListener(
-  "mousedown",
-  iniciarArrasto
-);
-
-document.addEventListener(
-  "mousemove",
-  moverArrasto
-);
-
-document.addEventListener(
-  "mouseup",
-  pararArrasto
-);
-
-
-header.addEventListener(
-  "touchstart",
-  iniciarArrasto,
-  {passive:false}
-);
-
-document.addEventListener(
-  "touchmove",
-  moverArrasto,
-  {passive:false}
-);
-
-document.addEventListener(
-  "touchend",
-  pararArrasto
-);
-
-
-/* =====================================================
-   REDIMENSIONAR
-===================================================== */
-
-const resize =
-  document.getElementById("resizeHandle");
-
-let resizing = false;
-
-let startX;
-let startY;
-
-let startWidth;
-let startHeight;
-
-
-resize.addEventListener(
-  "mousedown",
-  e => {
-
-    resizing = true;
-
-    startX = e.clientX;
-    startY = e.clientY;
-
-    startWidth =
-      browser.offsetWidth;
-
-    startHeight =
-      browser.offsetHeight;
-
-    e.preventDefault();
-
-  }
-);
-
-
-document.addEventListener(
-  "mousemove",
-  e => {
-
-    if (!resizing)
-      return;
-
-    const newWidth =
-      startWidth +
-      (e.clientX - startX);
-
-    const newHeight =
-      startHeight +
-      (e.clientY - startY);
-
-    browser.style.width =
-      Math.max(250, newWidth) + "px";
-
-    browser.style.height =
-      Math.max(180, newHeight) + "px";
-
-  }
-);
-
-
-document.addEventListener(
-  "mouseup",
-  () => {
-
-    resizing = false;
-
-  }
-);
-
-
-/* =====================================================
-   MIRA / RETÍCULO
-   FICA NO CENTRO DA VISÃO
-===================================================== */
-
-let reticleTimer = null;
-
-document.addEventListener(
-  "click",
-  e => {
-
-    const reticle =
-      document.getElementById("reticle");
-
-    reticle.style.transform =
-      "translate(-50%,-50%) scale(1.3)";
-
-    clearTimeout(reticleTimer);
-
-    reticleTimer =
-      setTimeout(() => {
-
-        reticle.style.transform =
-          "translate(-50%,-50%) scale(1)";
-
-      }, 180);
-
-  }
-);
+// BOTÕES
+document.getElementById('entrar').addEventListener('click', ligarCamera);
 
 </script>
-
 </body>
 </html>
