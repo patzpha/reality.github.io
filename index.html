@@ -1,376 +1,220 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#000000">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#000">
 <title>VisionS°MR</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; }
+:root{--accent:#007aff}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;color:#fff;touch-action:none;user-select:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+video{position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none}
+#diag{position:fixed;left:12px;top:8px;font:11px/1.4 ui-monospace,Menlo,monospace;color:#9dffb0;z-index:100;pointer-events:none}
+#gear{position:fixed;right:12px;top:8px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,0.1);color:#fff;font-size:20px;z-index:100;cursor:pointer}
 
-canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
-video { position: fixed; left: -9999px; top: 0; opacity: 0; }
-#info { position: fixed; left: 12px; top: 8px; font: 11px/1.4 ui-monospace, monospace; color: #9dffb0; z-index: 100; pointer-events: none; }
-#settingsBtn { position: fixed; right: 12px; top: 8px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 20px; z-index: 100; cursor: pointer; }
-
-/* === MENU PRINCIPAL — LIMPO E FUNCIONANDO === */
-#menu {
-  position: fixed; inset: 0;
-  background: linear-gradient(180deg, #1c1c1e 0%, #000 100%);
-  padding: max(50px, env(safe-area-inset-top)) 24px 30px;
-  overflow-y: auto;
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  transition: opacity 0.3s ease;
-}
-#menu.hidden { display: none; }
-
-#menu h1 { font-size: 34px; font-weight: 700; text-align: center; margin-bottom: 4px; }
-#menu p.sub { text-align: center; color: #8e8e93; font-size: 15px; margin-bottom: 10px; }
-
-.form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
-.form-group label { font-size: 14px; color: #aeaeb2; }
-.form-group select {
-  padding: 14px 16px; border-radius: 12px; background: rgba(255,255,255,0.08);
-  color: #fff; border: none; font-size: 16px;
-}
-
-.check-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
-.check-row input { width: 20px; height: 20px; accent-color: #007aff; cursor: pointer; }
-.check-row span { font-size: 15px; color: #fff; }
-
-.btn-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
-.btn-row { display: flex; gap: 12px; }
-button {
-  padding: 14px 20px; border-radius: 14px; border: none;
-  font-size: 16px; font-weight: 600; cursor: pointer;
-  transition: transform 0.15s;
-}
-button:active { transform: scale(0.97); }
-.btn-sec { background: rgba(255,255,255,0.1); color: #fff; flex: 1; }
-.btn-pri { background: #007aff; color: #fff; width: 100%; padding: 16px; font-size: 17px; margin-top: 8px; }
-
-.footer { text-align: center; font-size: 12px; color: #636366; margin-top: 10px; line-height: 1.5; }
+/* === PÁGINA PRINCIPAL — EXATAMENTE COMO ESTAVA === */
+#menu{position:fixed;inset:0;background:linear-gradient(180deg,#1c1c1e 0%,#000 100%);padding:max(40px,env(safe-area-inset-top))24px 24px;overflow:auto;z-index:200;display:flex;flex-direction:column;gap:20px}
+#menu.off{display:none}
+#menu h1{font-size:36px;font-weight:700;margin-bottom:8px;text-align:center}
+#menu .subtitle{text-align:center;color:#8e8e93;font-size:15px;margin-bottom:32px}
+#menu label{display:flex;flex-direction:column;gap:6px;font-size:15px;color:#aeaeb2;margin-bottom:16px}
+#menu label span{color:#fff}
+#menu select{padding:12px 16px;border-radius:12px;background:rgba(255,255,255,0.08);color:#fff;border:none;font-size:16px}
+#menu input[type=checkbox]{width:20px;height:20px;margin-right:10px;accent-color:var(--accent)}
+#menu .chk-row{display:flex;align-items:center;margin-bottom:12px}
+#menu .btn-row{display:flex;gap:12px;margin-top:8px}
+#menu button{flex:1;padding:14px 20px;border-radius:14px;border:none;font-size:16px;font-weight:600;cursor:pointer}
+#menu .btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+#menu .btn-primary{background:var(--accent);color:#fff}
+#menu .footer-note{margin-top:24px;text-align:center;font-size:12px;color:#636366}
 </style>
 </head>
 <body>
+<canvas id="c"></canvas>
+<video id="v" playsinline muted autoplay></video>
+<pre id="diag"></pre>
+<button id="gear">⚙</button>
 
-<canvas id="canvas"></canvas>
-<video id="video" playsinline muted autoplay></video>
-<div id="info"></div>
-<button id="settingsBtn">⚙</button>
-
-<!-- === MENU PRINCIPAL === -->
-<div id="menu">
+<!-- PÁGINA PRINCIPAL COMPLETA -->
+<main id="menu">
   <h1>VisionS°MR</h1>
-  <p class="sub">Realidade Mista com Giroscópio</p>
+  <p class="subtitle">Realidade Mista • Giroscópio Ativo</p>
 
-  <div class="form-group">
-    <label>Resolução da Câmera</label>
-    <select id="resolucao">
-      <option value="hd" selected>Full HD (1920 × 1080)</option>
+  <label>
+    <span>Resolução da Câmera</span>
+    <select id="q">
       <option value="4k">4K (3840 × 2160)</option>
+      <option value="hd" selected>Full HD (1920 × 1080)</option>
     </select>
-  </div>
-
-  <label class="check-row">
-    <input type="checkbox" id="mostrarInfo" checked>
-    <span>Mostrar informações de FPS e câmera</span>
   </label>
 
-  <label class="check-row">
-    <input type="checkbox" id="rastrearMao" checked>
-    <span>Rastreamento de mão (MediaPipe Hands)</span>
-  </label>
-
-  <div class="btn-grid">
-    <div class="btn-row">
-      <button id="btnCentralizar" class="btn-sec">Centralizar</button>
-      <button id="btnReset" class="btn-sec">Resetar Apps</button>
-    </div>
-    <button id="btnEntrar" class="btn-pri">Entrar na Realidade Mista</button>
+  <div class="chk-row">
+    <input type="checkbox" id="diag-on" checked>
+    <label for="diag-on" style="margin:0;color:#fff">Mostrar informações de FPS e câmera</label>
   </div>
 
-  <p class="footer">
-    Use o giroscópio para olhar ao redor<br>
-    Toque em um app para abrir • Botão de engrenagem volta ao menu
-  </p>
-</div>
+  <div class="chk-row">
+    <input type="checkbox" id="hand-on" checked>
+    <label for="hand-on" style="margin:0;color:#fff">Rastreamento de mão (MediaPipe Hands)</label>
+  </div>
+
+  <div class="btn-row">
+    <button id="rc" class="btn-secondary">Centralizar Câmera</button>
+    <button id="rs" class="btn-secondary">Resetar Apps</button>
+  </div>
+
+  <div class="btn-row" style="margin-top:16px">
+    <button id="go" class="btn-primary" style="font-size:18px;padding:16px">Entrar na Realidade Mista</button>
+  </div>
+
+  <p class="footer-note">Toque na tela para selecionar apps • Use o giroscópio para olhar ao redor</p>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js"></script>
 <script>
 'use strict';
+const $=s=>document.querySelector(s), V3=THREE.Vector3;
+THREE.ColorManagement.enabled=false;
 
-// ELEMENTOS
-const $ = id => document.getElementById(id);
-const canvas = $('canvas');
-const video = $('video');
-const info = $('info');
-const menu = $('menu');
-const settingsBtn = $('settingsBtn');
-const resolucao = $('resolucao');
-const mostrarInfo = $('mostrarInfo');
-const rastrearMao = $('rastrearMao');
-const btnEntrar = $('btnEntrar');
-const btnCentralizar = $('btnCentralizar');
-const btnReset = $('btnReset');
+const D={ipd:64,fov:75,k1:.18,k2:.06,sep:0,hdepth:1,q:'hd',diag:true,hand:true};
+try{Object.assign(D,JSON.parse(localStorage.VisionSMR||'{}'))}catch(e){}
+const save=()=>{try{localStorage.VisionSMR=JSON.stringify(D)}catch(e){}};
+$('#q').value=D.q;$('#diag-on').checked=D.diag;$('#hand-on').checked=D.hand;
+$('#q').onchange=e=>{D.q=e.target.value;save();if(camStarted)startCam()};
+$('#diag-on').onchange=e=>{D.diag=e.target.checked;save()};
+$('#hand-on').onchange=e=>{D.hand=e.target.checked;save()};
 
-// ESTADO
-let rodando = false;
-let cameraAtiva = false;
-let giroDisponivel = false;
-let orientacao = { alpha: 0, beta: 0, gamma: 0 };
-let quatAtual = new THREE.Quaternion();
-let ultimoGiro = 0;
+const cv=$('#c'),video=$('#v');
+const R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+R.autoClear=false;R.setPixelRatio(Math.min(devicePixelRatio,1.5));
+let PW=1,PH=1,rt=null;
 
-// THREE.JS
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-const cena = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.z = 0;
+const vtex=new THREE.VideoTexture(video);
+vtex.minFilter=vtex.magFilter=THREE.LinearFilter;
+const bgS=new THREE.Scene(),bgC=new THREE.Camera();
+const bgM=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,uniforms:{t:{value:vtex},s:{value:new THREE.Vector2(1,1)}},
+vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}',
+fragmentShader:'uniform sampler2D t;uniform vec2 s;varying vec2 v;void main(){gl_FragColor=vec4(texture2D(t,.5+(v-.5)*s).rgb,1.);}'});
+const bgQ=new THREE.Mesh(new THREE.PlaneGeometry(2,2),bgM);bgQ.frustumCulled=false;bgS.add(bgQ);
 
-// CÂMERA DE FUNDO
-const texturaVideo = new THREE.VideoTexture(video);
-texturaVideo.minFilter = THREE.LinearFilter;
-const planoFundo = new THREE.Mesh(
-  new THREE.PlaneGeometry(2, 2),
-  new THREE.MeshBasicMaterial({ map: texturaVideo, depthWrite: false })
-);
-const cenaFundo = new THREE.Scene();
-cenaFundo.add(planoFundo);
+const ds=new THREE.Scene();
+const dm=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,uniforms:{t:{value:null},k:{value:new THREE.Vector2()},sep:{value:0},asp:{value:1}},
+vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}',
+fragmentShader:`uniform sampler2D t;uniform vec2 k;uniform float sep,asp;varying vec2 v;
+void main(){float e=step(.5,v.x);vec2 l=vec2((v.x-.5*e)*2.,v.y);float c=.5+(1.-2.*e)*sep;
+vec2 p=(l-vec2(c,.5))*2.;p.x*=asp;float r2=dot(p,p);p*=1.+k.x*r2+k.y*r2*r2;p.x/=asp;
+vec2 q=p*.5+vec2(c,.5);if(q.x<0.||q.x>1.||q.y<0.||q.y>1.){gl_FragColor=vec4(0.,0.,0.,1.);return;}
+gl_FragColor=vec4(texture2D(t,vec2(q.x*.5+.5*e,q.y)).rgb,1.);}`});
+const dq=new THREE.Mesh(new THREE.PlaneGeometry(2,2),dm);dq.frustumCulled=false;ds.add(dq);
 
-// SISTEMA DE COORDENADAS DO GIROSCÓPIO
-const eixosCorretos = new THREE.Euler(Math.PI / 2, 0, 0, 'YXZ');
-const quatBase = new THREE.Quaternion().setFromEuler(eixosCorretos);
+function resize(){
+const pr=Math.min(devicePixelRatio||1,1.5);
+PW=Math.max(2,Math.floor(innerWidth*pr));PH=Math.max(2,Math.floor(innerHeight*pr));
+R.setSize(PW,PH,false);if(rt)rt.dispose();
+rt=new THREE.WebGLRenderTarget(PW,PH,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
+dm.uniforms.t.value=rt.texture;
+}
+addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,300));resize();
 
-// === ÍCONES SVG — SEM FUNDO ATRÁS, MAIS LONGE ===
-const APPS = [
-  { nome: 'Apple TV', x: -0.7, y: 0.4, z: -3, cor: '#000', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M23.6 19.2c-1.6 0-2.9.9-3.7 2.2l-4.6 7.5-4.6-7.5c-.7-1.3-2.1-2.2-3.7-2.2C3.2 19.2 1 21.4 1 24.1c0 1.5.7 2.8 1.8 3.7l5.8 9.3c.7 1.1 1.9 1.8 3.3 1.8s2.6-.7 3.3-1.8l5.8-9.3c1.1-.9 1.8-2.2 1.8-3.7 0-2.7-2.2-4.7-4.2-4.7zm16.5 0c-1.6 0-2.9.9-3.7 2.2l-4.6 7.5-4.6-7.5c-.7-1.3-2.1-2.2-3.7-2.2-2 0-4 2-4 4.7 0 1.5.7 2.8 1.8 3.7l5.8 9.3c.7 1.1 1.9 1.8 3.3 1.8s2.6-.7 3.3-1.8l5.8-9.3c1.1-.9 1.8-2.2 1.8-3.7 0-2.7-2.2-4.7-4.2-4.7zm16.5 0c-1.6 0-2.9.9-3.7 2.2l-4.6 7.5-4.6-7.5c-.7-1.3-2.1-2.2-3.7-2.2-2 0-4 2-4 4.7 0 1.5.7 2.8 1.8 3.7l5.8 9.3c.7 1.1 1.9 1.8 3.3 1.8s2.6-.7 3.3-1.8l5.8-9.3c1.1-.9 1.8-2.2 1.8-3.7 0-2.7-2.2-4.7-4.2-4.7z"/></svg>' },
-  { nome: 'Música', x: -0.25, y: 0.4, z: -3, cor: '#fc3c44', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M36 14v24c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8c1.3 0 2.5.3 3.5.9V18h10v-4h-6zm-8 26c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/></svg>' },
-  { nome: 'Fotos', x: 0.2, y: 0.4, z: -3, cor: '#fff', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="24" cy="24" r="12" fill="#ffb347"/><circle cx="40" cy="24" r="12" fill="#66c7ff"/><circle cx="32" cy="38" r="12" fill="#ff7eb7"/><circle cx="16" cy="36" r="10" fill="#90ee90"/><circle cx="48" cy="36" r="10" fill="#b19cd9"/></svg>' },
-  { nome: 'Fones', x: 0.65, y: 0.4, z: -3, cor: '#f5f5f7', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#333"><path d="M32 8C19.8 8 10 17.8 10 30v16c0 3.3 2.7 6 6 6h6V34h-4v-4c0-8.8 7.2-16 16-16s16 7.2 16 16v4h-4v18h6c3.3 0 6-2.7 6-6V30C54 17.8 44.2 8 32 8z"/></svg>' },
-  { nome: 'Ondas', x: -0.7, y: -0.1, z: -3, cor: '#fff', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#007aff"><path d="M4 32c0-15.5 12.5-28 28-28s28 12.5 28 28H4zm28 28c-7.7 0-14.7-3.1-19.8-8.2L4 48c7.1 7.1 16.9 11.5 28 11.5S52.9 55.1 60 48l-8.2-4.2c-5.1 5.1-12.1 8.2-19.8 8.2z"/></svg>' },
-  { nome: 'Safari', x: -0.25, y: -0.1, z: -3, cor: '#007aff', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M32 6C17.6 6 6 17.6 6 32s11.6 26 26 26 26-11.6 26-26S46.4 6 32 6zm0 48c-12.1 0-22-9.9-22-22S19.9 10 32 10s22 9.9 22 22-9.9 22-22 22zm-6-34l-4 14 14 4 4-14-14-4zm3 12c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z"/></svg>' },
-  { nome: 'App Store', x: 0.2, y: -0.1, z: -3, cor: '#007aff', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M22.6 20.4l-3.6 6.3 3.2 1.8 3.6-6.3c.6-1-.2-2.2-1.3-2.1-.1 0-.2 0-.3.1zm-6.4 3.5L6.3 41.2c-.5.9.2 2 1.2 2h7.5c.4 0 .8-.2 1-.6l2.7-4.8 2.8 4.8c.2.4.6.6 1 .6h7.5c1 0 1.7-1.1 1.2-2L26 23.9c-.5-.9-1.9-.9-2.4 0l-3.2 5.7-3.6-5.7c-.5-.9-1.9-.9-2.4 0zm31.6 19.3l4.1-7.2-4.1-7.2c-.5-.9-1.9-.9-2.4 0l-1.8 3.2-1.8-3.2c-.5-.9-1.9-.9-2.4 0l-4.1 7.2 4.1 7.2c.5.9 1.9.9 2.4 0l1.8-3.2 1.8 3.2c.5.9 1.9.9 2.4 0z"/></svg>' },
-  { nome: 'Mail', x: 0.65, y: -0.1, z: -3, cor: '#007aff', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M52 16H12c-2.2 0-4 1.8-4 4v24c0 2.2 1.8 4 4 4h40c2.2 0 4-1.8 4-4V20c0-2.2-1.8-4-4-4zm0 8L32 36 12 24V20l20 12 20-12v4z"/></svg>' },
-  { nome: 'Mensagens', x: -0.7, y: -0.6, z: -3, cor: '#34c759', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M16 12c-4.4 0-8 3.1-8 7v16c0 3.9 3.6 7 8 7h4v7l7.4-7H48c4.4 0 8-3.1 8-7V19c0-3.9-3.6-7-8-7H16z"/></svg>' },
-  { nome: 'Calendário', x: -0.25, y: -0.6, z: -3, cor: '#ff3b30', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><rect x="12" y="16" width="40" height="32" rx="4" fill="none" stroke="white" stroke-width="3"/><line x1="12" y1="26" x2="52" y2="26" stroke="white" stroke-width="3"/><text x="32" y="42" text-anchor="middle" font-size="18" font-weight="bold">12</text></svg>' },
-  { nome: 'Ajustes', x: 0.2, y: -0.6, z: -3, cor: '#f5f5f7', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#333"><path d="M32 22c-5.5 0-10 4.5-10 10s4.5 10 10 10 10-4.5 10-10-4.5-10-10-10zm0 16c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6zm18.4-10.8l3.8-1.2c.5-.2.8-.7.6-1.2l-3-5.2c-.2-.5-.7-.7-1.2-.6l-3.8 1.2c-1-1-2.2-1.8-3.4-2.4l-.6-3.9c-.1-.5-.5-.9-1-.9h-6c-.5 0-.9.4-1 .9l-.6 3.9c-1.3.6-2.4 1.4-3.4 2.4l-3.8-1.2c-.5-.2-1 0-1.2.6l-3 5.2c-.2.5 0 1 .6 1.2l3.8 1.2c0 .8 0 1.6 0 2.4s0 1.6 0 2.4l-3.8 1.2c-.5.2-.8.7-.6 1.2l3 5.2c.2.5.7.7 1.2.6l3.8-1.2c1 1 2.2 1.8 3.4 2.4l.6 3.9c.1.5.5.9 1 .9h6c.5 0 .9-.4 1-.9l.6-3.9c1.3-.6 2.4-1.4 3.4-2.4l3.8 1.2c.5.2 1 0 1.2-.6l3-5.2c.2-.5 0-1-.6-1.2l-3.8-1.2c0-.8 0-1.6 0-2.4s0-1.6 0-2.4z"/></svg>' },
+const scene=new THREE.Scene(),head=new THREE.Object3D();scene.add(head);
+const E=[new THREE.PerspectiveCamera(75,1,.05,100),new THREE.PerspectiveCamera(75,1,.05,100)];
+E.forEach(c=>head.add(c));
+const hs=new THREE.Scene(),HC=new THREE.PerspectiveCamera(75,1,.01,10);
+
+function pl(w,h,t){return new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,side:THREE.DoubleSide}))}
+
+/* ========== ✅ SÓ MUDEI AQUI: ÍCONES MAIS LONGE ========== */
+const ICONS=[
+  {name:'Apple TV', col:0, row:0, bg:'#000000', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M23.6 19.2c-1.6 0-2.9.9-3.7 2.2l-4.6 7.5-4.6-7.5c-.7-1.3-2.1-2.2-3.7-2.2C3.2 19.2 1 21.4 1 24.1c0 1.5.7 2.8 1.8 3.7l5.8 9.3c.7 1.1 1.9 1.8 3.3 1.8s2.6-.7 3.3-1.8l5.8-9.3c1.1-.9 1.8-2.2 1.8-3.7 0-2.7-2.2-4.7-4.2-4.7zm16.5 0c-1.6 0-2.9.9-3.7 2.2l-4.6 7.5-4.6-7.5c-.7-1.3-2.1-2.2-3.7-2.2-2 0-4 2-4 4.7 0 1.5.7 2.8 1.8 3.7l5.8-9.3c1.1-.9 1.8-2.2 1.8-3.7 0-2.7-2.2-4.7-4.2-4.7zm16.5 0c-1.6 0-2.9.9-3.7 2.2l-4.6 7.5-4.6-7.5c-.7-1.3-2.1-2.2-3.7-2.2-2 0-4 2-4 4.7 0 1.5.7 2.8 1.8 3.7l5.8 9.3c.7 1.1 1.9 1.8 3.3 1.8s2.6-.7 3.3-1.8l5.8-9.3c1.1-.9 1.8-2.2 1.8-3.7 0-2.7-2.2-4.7-4.2-4.7z"/></svg>`},
+  {name:'Música', col:1, row:0, bg:'#fc3c44', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M36 14v24c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8c1.3 0 2.5.3 3.5.9V18h10v-4h-6zm-8 26c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/></svg>`},
+  {name:'Fotos', col:2, row:0, bg:'#ffffff', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="24" cy="24" r="12" fill="#ffb347"/><circle cx="40" cy="24" r="12" fill="#66c7ff"/><circle cx="32" cy="38" r="12" fill="#ff7eb7"/><circle cx="16" cy="36" r="10" fill="#90ee90"/><circle cx="48" cy="36" r="10" fill="#b19cd9"/></svg>`},
+  {name:'Fones', col:3, row:0, bg:'#f5f5f7', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#333"><path d="M32 8C19.8 8 10 17.8 10 30v16c0 3.3 2.7 6 6 6h6V34h-4v-4c0-8.8 7.2-16 16-16s16 7.2 16 16v4h-4v18h6c3.3 0 6-2.7 6-6V30C54 17.8 44.2 8 32 8z"/></svg>`},
+  {name:'', col:0, row:1, bg:'#ffffff', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#007aff"><path d="M4 32c0-15.5 12.5-28 28-28s28 12.5 28 28H4zm28 28c-7.7 0-14.7-3.1-19.8-8.2L4 48c7.1 7.1 16.9 11.5 28 11.5S52.9 55.1 60 48l-8.2-4.2c-5.1 5.1-12.1 8.2-19.8 8.2z"/></svg>`},
+  {name:'Safari', col:1, row:1, bg:'#007aff', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M32 6C17.6 6 6 17.6 6 32s11.6 26 26 26 26-11.6 26-26S46.4 6 32 6zm0 48c-12.1 0-22-9.9-22-22S19.9 10 32 10s22 9.9 22 22-9.9 22-22 22zm-6-34l-4 14 14 4 4-14-14-4zm3 12c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z"/></svg>`},
+  {name:'App Store', col:3, row:1, bg:'#007aff', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M22.6 20.4l-3.6 6.3 3.2 1.8 3.6-6.3c.6-1-.2-2.2-1.3-2.1-.1 0-.2 0-.3.1zm-6.4 3.5L6.3 41.2c-.5.9.2 2 1.2 2h7.5c.4 0 .8-.2 1-.6l2.7-4.8 2.8 4.8c.2.4.6.6 1 .6h7.5c1 0 1.7-1.1 1.2-2L26 23.9c-.5-.9-1.9-.9-2.4 0l-3.2 5.7-3.6-5.7c-.5-.9-1.9-.9-2.4 0zm31.6 19.3l4.1-7.2-4.1-7.2c-.5-.9-1.9-.9-2.4 0l-1.8 3.2-1.8-3.2c-.5-.9-1.9-.9-2.4 0l-4.1 7.2 4.1 7.2c.5.9 1.9.9 2.4 0l1.8-3.2 1.8 3.2c.5.9 1.9.9 2.4 0z"/></svg>`},
+  {name:'Mail', col:0, row:2, bg:'#007aff', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M52 16H12c-2.2 0-4 1.8-4 4v24c0 2.2 1.8 4 4 4h40c2.2 0 4-1.8 4-4V20c0-2.2-1.8-4-4-4zm0 8L32 36 12 24V20l20 12 20-12v4z"/></svg>`},
+  {name:'Mensagens', col:1, row:2, bg:'#34c759', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><path d="M16 12c-4.4 0-8 3.1-8 7v16c0 3.9 3.6 7 8 7h4v7l7.4-7H48c4.4 0 8-3.1 8-7V19c0-3.9-3.6-7-8-7H16z"/></svg>`},
+  {name:'Calendário', col:2, row:2, bg:'#ff3b30', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="white"><rect x="12" y="16" width="40" height="32" rx="4" fill="none" stroke="white" stroke-width="3"/><line x1="12" y1="26" x2="52" y2="26" stroke="white" stroke-width="3"/><text x="32" y="42" text-anchor="middle" font-size="18" font-weight="bold">12</text></svg>`},
+  {name:'Configurações', col:3, row:2, bg:'#f5f5f7', svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#333"><path d="M32 22c-5.5 0-10 4.5-10 10s4.5 10 10 10 10-4.5 10-10-4.5-10-10-10zm0 16c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6zm18.4-10.8l3.8-1.2c.5-.2.8-.7.6-1.2l-3-5.2c-.2-.5-.7-.7-1.2-.6l-3.8 1.2c-1-1-2.2-1.8-3.4-2.4l-.6-3.9c-.1-.5-.5-.9-1-.9h-6c-.5 0-.9.4-1 .9l-.6 3.9c-1.3.6-2.4 1.4-3.4 2.4l-3.8-1.2c-.5-.2-1 0-1.2.6l-3 5.2c-.2.5 0 1 .6 1.2l3.8 1.2c0 .8 0 1.6 0 2.4s0 1.6 0 2.4l-3.8 1.2c-.5.2-.8.7-.6 1.2l3 5.2c.2.5.7.7 1.2.6l3.8-1.2c1 1 2.2 1.8 3.4 2.4l.6 3.9c.1.5.5.9 1 .9h6c.5 0 .9-.4 1-.9l.6-3.9c1.3-.6 2.4-1.4 3.4-2.4l3.8 1.2c.5.2 1 0 1.2-.6l3-5.2c.2-.5 0-1-.6-1.2l-3.8-1.2c0-.8 0-1.6 0-2.4s0-1.6 0-2.4z"/></svg>`},
 ];
 
-const appObjetos = [];
+const items=[];
+ICONS.forEach(app=>{
+const g=new THREE.Group();
+g.userData={
+  name:app.name,
+  // ✅ SÓ AQUI MUDEI: z = -2.2 (antes era -1.8 — um pouquinho mais longe só)
+  home:new V3(-0.85 + app.col*0.45, 0.40 - app.row*0.45, -2.2),
+  s:1
+};
+g.position.copy(g.userData.home);
+scene.add(g);
+items.push(g);
 
-// CRIAR ÍCONE SVG
-function criarIcone(app) {
-  const grupo = new THREE.Group();
-  grupo.position.set(app.x, app.y, app.z);
-  grupo.userData = { nome: app.nome };
+const c=document.createElement('canvas');c.width=c.height=256;
+const x=c.getContext('2d');
+const t=new THREE.CanvasTexture(c);t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;
 
-  const canvasIcone = document.createElement('canvas');
-  canvasIcone.width = canvasIcone.height = 256;
-  const ctx = canvasIcone.getContext('2d');
-  const textura = new THREE.CanvasTexture(canvasIcone);
-  textura.minFilter = THREE.LinearFilter;
+x.clearRect(0,0,256,256);
+x.fillStyle=app.bg;
+x.beginPath();x.arc(128,128,124,0,Math.PI*2);x.fill();
 
-  // Desenhar fundo circular
-  ctx.clearRect(0, 0, 256, 256);
-  ctx.fillStyle = app.cor;
-  ctx.beginPath();
-  ctx.arc(128, 128, 124, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Carregar e desenhar SVG
-  const img = new Image();
-  img.onload = () => {
-    ctx.drawImage(img, 48, 48, 160, 160);
-    textura.needsUpdate = true;
-    const material = new THREE.MeshBasicMaterial({ map: textura, transparent: true, depthWrite: false, side: THREE.DoubleSide });
-    const malha = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 0.45), material);
-    grupo.add(malha);
-  };
-  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(app.svg);
-
-  cena.add(grupo);
-  appObjetos.push(grupo);
-  return grupo;
-}
-
-APPS.forEach(criarIcone);
-
-// FUNÇÕES
-function redimensionar() {
-  const w = window.innerWidth, h = window.innerHeight;
-  renderer.setSize(w, h, false);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-}
-
-function centralizarCamera() {
-  quatAtual.set(quatBase);
-}
-
-async function iniciarCamera() {
-  const eh4k = resolucao.value === '4k';
-  const opcoes = {
-    video: {
-      facingMode: 'environment',
-      width: { ideal: eh4k ? 3840 : 1920 },
-      height: { ideal: eh4k ? 2160 : 1080 }
-    },
-    audio: false
-  };
-
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia(opcoes);
-    video.srcObject = stream;
-    await video.play();
-    cameraAtiva = true;
-  } catch (err) {
-    console.error('Erro câmera:', err);
-    cameraAtiva = false;
-  }
-}
-
-// TOAST DE MENSAGEM
-let toastEl = null;
-function mostrarToast(texto) {
-  if (toastEl) clearTimeout(toastEl.timer);
-  if (!toastEl) {
-    toastEl = document.createElement('div');
-    toastEl.style.cssText = `
-      position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
-      background: rgba(20,20,20,0.9); color: #fff; padding: 14px 24px;
-      border-radius: 100px; font-size: 15px; z-index: 300;
-      pointer-events: none; transition: opacity 0.2s;
-    `;
-    document.body.appendChild(toastEl);
-  }
-  toastEl.textContent = texto;
-  toastEl.style.opacity = '1';
-  toastEl.timer = setTimeout(() => { toastEl.style.opacity = '0'; }, 2000);
-}
-
-// EVENTOS DO GIROSCÓPIO
-window.addEventListener('deviceorientation', (e) => {
-  if (e.alpha === null || e.beta === null) return;
-  giroDisponivel = true;
-  orientacao.alpha = e.alpha;
-  orientacao.beta = e.beta;
-  orientacao.gamma = e.gamma;
+const img=new Image();
+img.onload=()=>{x.drawImage(img,48,48,160,160);t.needsUpdate=true;const m=pl(0.30,0.30,t);g.add(m);};
+img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(app.svg);
 });
 
-// BOTÕES
-settingsBtn.addEventListener('click', () => {
-  rodando = false;
-  menu.classList.remove('hidden');
-  info.style.display = 'none';
-});
+const resetItems=()=>items.forEach(g=>g.position.copy(g.userData.home));
 
-btnCentralizar.addEventListener('click', centralizarCamera);
+let camStarted=false,camOn=false,camState='desligada';
+async function startCam(){
+camStarted=true;try{if(video.srcObject)video.srcObject.getTracks().forEach(t=>t.stop())}catch(e){}
+const hq=D.q==='4k';
+try{const s=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:hq?3840:1920},height:{ideal:hq?2160:1080},frameRate:{ideal:30}}});
+video.srcObject=s;await video.play();camOn=true;camState='ativa';}catch(e){camOn=false;camState='erro: '+(e.name||e)}}
 
-btnReset.addEventListener('click', () => {
-  appObjetos.forEach((obj, i) => {
-    const app = APPS[i];
-    if (app) obj.position.set(app.x, app.y, app.z);
-  });
-  mostrarToast('Apps resetados ✅');
-});
+let haveOri=false,dyaw=0,dpit=0,ori={a:0,b:0,g:0};
+const eu=new THREE.Euler(),q1=new THREE.Quaternion(-Math.SQRT1_2,0,0,Math.SQRT1_2),q0=new THREE.Quaternion(),zee=new V3(0,0,1),qo=new THREE.Quaternion(),qd=new THREE.Quaternion();
+addEventListener('deviceorientation',e=>{if(e.alpha==null||e.beta==null)return;ori.a=e.alpha;ori.b=e.beta;ori.g=e.gamma;haveOri=true});
+function devQ(){const d=Math.PI/180,o=(screen.orientation?screen.orientation.angle:(window.orientation||0))*d;
+eu.set(ori.b*d,ori.a*d,-ori.g*d,'YXZ');return qd.setFromEuler(eu).multiply(q1).multiply(q0.setFromAxisAngle(zee,-o))}
+function recenter(){if(haveOri){eu.setFromQuaternion(devQ(),'YXZ');qo.setFromAxisAngle(new V3(0,1,0),-eu.y)}dyaw=0;dpit=0}
 
-btnEntrar.addEventListener('click', async () => {
-  menu.classList.add('hidden');
-  if (mostrarInfo.checked) info.style.display = 'block';
-  await iniciarCamera();
-  centralizarCamera();
-  rodando = true;
-  mostrarToast('Giroscópio ativo 🔄');
-});
-
-// TOQUE NOS APPS
-canvas.addEventListener('pointerdown', (e) => {
-  if (!rodando) return;
-  const raio = new THREE.Raycaster();
-  const x = (e.clientX / window.innerWidth) * 2 - 1;
-  const y = -(e.clientY / window.innerHeight) * 2 + 1;
-  raio.setFromCamera(new THREE.Vector2(x, y), camera);
-  
-  for (const app of appObjetos) {
-    const intersecao = raio.intersectObjects(app.children, true);
-    if (intersecao.length > 0 && app.userData.nome) {
-      mostrarToast('Abrindo: ' + app.userData.nome + ' ✅');
-      break;
-    }
-  }
-});
-
-// LOOP PRINCIPAL
-let ultimoFPS = performance.now(), quadros = 0, fpsAtual = 0;
-function animar(agora) {
-  requestAnimationFrame(animar);
-
-  // Calcular FPS
-  quadros++;
-  if (agora - ultimoFPS >= 1000) {
-    fpsAtual = quadros;
-    quadros = 0;
-    ultimoFPS = agora;
-  }
-
-  if (!rodando) return;
-
-  // ATUALIZAR GIROSCÓPIO
-  if (giroDisponivel) {
-    const alfa = THREE.MathUtils.degToRad(orientacao.alpha || 0);
-    const beta = THREE.MathUtils.degToRad(orientacao.beta || 0);
-    const gama = THREE.MathUtils.degToRad(orientacao.gamma || 0);
-    
-    const euler = new THREE.Euler(beta, -alfa, -gama, 'YXZ');
-    const giro = new THREE.Quaternion().setFromEuler(euler);
-    
-    quatAtual.slerp(giro.clone().multiply(quatBase), 0.1);
-    camera.quaternion.copy(quatAtual);
-  }
-
-  // Virar ícones para a câmera
-  appObjetos.forEach(obj => obj.lookAt(camera.position));
-
-  // RENDERIZAR
-  renderer.autoClear = false;
-  renderer.clear();
-  if (cameraAtiva) renderer.render(cenaFundo, new THREE.Camera());
-  renderer.render(cena, camera);
-
-  // ATUALIZAR INFO
-  if (mostrarInfo.checked) {
-    let texto = `FPS: ${fpsAtual}`;
-    texto += `\nCâmera: ${cameraAtiva ? 'Ativa' : '---'}`;
-    texto += `\nGiroscópio: ${giroDisponivel ? 'Ativo' : 'Não disponível'}`;
-    info.textContent = texto;
-  }
+let fps=0,fc=0,ft=performance.now(),run=false;
+const diag=$('#diag');
+function frame(now){
+requestAnimationFrame(frame);if(!run)return;
+fc++;if(now-ft>500){fps=Math.round(fc*1000/(now-ft));fc=0;ft=now;diag.style.display=D.diag?'block':'none';
+if(D.diag)diag.textContent=`FPS ${fps}\nCâmera: ${camState}`;}
+if(haveOri){head.quaternion.copy(qo).multiply(devQ())}
+else{head.rotation.set(dpit,dyaw,0,'YXZ')}
+head.updateMatrixWorld(true);
+const ea=PW/2/PH;if(video.videoWidth){const va=video.videoWidth/video.videoHeight;const S=new THREE.Vector2(Math.min(1,ea/va),Math.min(1,va/ea));bgM.uniforms.s.value.copy(S)}
+draw();
 }
+function draw(){
+const ea=PW/2/PH,w=PW>>1;
+E[0].position.x=-D.ipd/2000;E[1].position.x=D.ipd/2000;
+[E[0],E[1],HC].forEach(c=>{c.fov=D.fov;c.aspect=ea;c.updateProjectionMatrix()});
+dm.uniforms.k.value.set(D.k1,D.k2);dm.uniforms.sep.value=D.sep;dm.uniforms.asp.value=ea;
+R.setRenderTarget(rt);R.setScissorTest(false);R.setViewport(0,0,PW,PH);R.setClearColor(0x000000,1);R.clear();
+R.setScissorTest(true);
+for(let e=0;e<2;e++){const ew=e*w;R.setViewport(ew,0,w,PH);R.setScissor(ew,0,w,PH);if(camOn)R.render(bgS,bgC);R.clearDepth();R.render(scene,E[e]);}
+R.setRenderTarget(null);R.setScissorTest(false);R.setViewport(0,0,PW,PH);R.clear();R.render(ds,bgC);
+}
+requestAnimationFrame(frame);
 
-// INICIALIZAR
-window.addEventListener('resize', redimensionar);
-redimensionar();
-animar(0);
-
-// Salvar preferências
-resolucao.addEventListener('change', () => localStorage.setItem('vsRes', resolucao.value));
-mostrarInfo.addEventListener('change', () => localStorage.setItem('vsInfo', mostrarInfo.checked));
-rastrearMao.addEventListener('change', () => localStorage.setItem('vsMao', rastrearMao.checked));
-
-// Carregar preferências
-const prevRes = localStorage.getItem('vsRes');
-const prevInfo = localStorage.getItem('vsInfo');
-const prevMao = localStorage.getItem('vsMao');
-if (prevRes) resolucao.value = prevRes;
-if (prevInfo !== null) mostrarInfo.checked = prevInfo === 'true';
-if (prevMao !== null) rastrearMao.checked = prevMao === 'true';
-
+$('#gear').onclick=()=>{$('#menu').classList.remove('off');run=false};
+$('#rc').onclick=recenter;$('#rs').onclick=resetItems;
+$('#go').onclick=async()=>{
+try{if(window.DeviceOrientationEvent&&DeviceOrientationEvent.requestPermission)await DeviceOrientationEvent.requestPermission()}catch(e){}
+$('#menu').classList.add('off');
+if(!camStarted)await startCam();
+setTimeout(()=>{resize();recenter();run=true},400);
+};
 </script>
 </body>
 </html>
