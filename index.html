@@ -193,7 +193,7 @@ const KH=396,KB=mk(1024,KH),kb=pl(.9,.9*KH/1024,KB.t);kb.visible=false;scene.add
 const KR=['1234567890','qwertyuiop','asdfghjkl⌫','zxcvbnmç.-'],KEYS=[];
 KR.forEach((row,r)=>[...row].forEach((ch,c)=>KEYS.push({l:ch,t:ch==='⌫'?'b':'c',x:c*102.4+6,y:r*78+6,w:90,h:70})));
 KEYS.push({l:'.com',t:'c',x:6,y:318,w:196,h:70},{l:'/',t:'c',x:211,y:318,w:90,h:70},{l:':',t:'c',x:313,y:318,w:90,h:70},{l:'espaço',t:'s',x:416,y:318,w:295,h:70},{l:'BUSCAR',t:'g',x:722,y:318,w:296,h:70});
-let q='',view='s',pTitle='',pLines=[],pScroll=0,pStat='',res=[],gStat='',blink=true,hoverK=null,flashK=null,wHit=null;
+let q='',view='s',pTitle='',pLines=[],pScroll=0,pStat='',pImg=null,pMode='t',res=[],gStat='',blink=true,hoverK=null,flashK=null,wHit=null;
 const pRay=new V3(0,0,-1),RC=new THREE.Raycaster(),rd=new V3();
 function drawKB(){const x=KB.x;x.clearRect(0,0,1024,KH);x.fillStyle='rgba(24,22,32,.92)';x.beginPath();x.roundRect(0,0,1024,KH,34);x.fill();
 x.textAlign='center';x.textBaseline='middle';
@@ -240,12 +240,18 @@ txt.split('\n').forEach(par=>{par=par.trim();if(!par){out.push('');return}let li
 par.split(/\s+/).forEach(w=>{const tl=line?line+' '+w:w;if(x.measureText(tl).width>840&&line){out.push(line);line=w}else line=tl});out.push(line)});
 return out.slice(0,900)}
 function showText(title,text){pTitle=title;pLines=wrap(text);pScroll=0;pStat=pLines.length?'':'Página sem texto para mostrar'}
-function loadingPage(t){view='p';pTitle=t;pLines=[];pScroll=0;pStat='Carregando…';drawG()}
-async function openUrl(u){loadingPage(u);
+function loadingPage(t){view='p';pTitle=t;pLines=[];pScroll=0;pImg=null;pMode='t';pStat='Carregando…';drawG()}
+function openUrl(u){loadingPage(u);let done=false;const im=new Image();im.crossOrigin='anonymous';
+const fail=()=>{if(done)return;done=true;clearTimeout(to);if(view==='p'&&pTitle===u)openText(u)};
+const to=setTimeout(fail,25000);
+im.onload=()=>{if(done)return;done=true;clearTimeout(to);if(view!=='p'||pTitle!==u)return;pImg=im;pMode='i';pScroll=0;pStat='';drawG()};
+im.onerror=fail;im.src='https://image.thum.io/get/width/1280/crop/4000/noanimate/'+u}
+async function openText(u){
 try{const t=await getT('https://r.jina.ai/'+u);
 const title=(t.match(/^Title:\s*(.+)$/m)||[])[1]||u;
 let body=t.split(/Markdown Content:\s*/)[1]||t;
 body=body.replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/[#*_`>|]/g,'').replace(/\n{3,}/g,'\n\n');
+body=body.replace(/\(https?:[^)]*\)/g,'').replace(/https?:\/\/\S+/g,'').split('\n').filter(l=>!l.trim()||/[\p{L}\p{N}]/u.test(l)).join('\n').replace(/\n{3,}/g,'\n\n');
 showText(title,body)}
 catch(e){pStat='Falha ao abrir o site ('+((e&&e.message)||e)+')'}
 drawG()}
@@ -264,21 +270,23 @@ x.beginPath();x.moveTo(931,43);x.lineTo(957,69);x.moveTo(957,43);x.lineTo(931,69
 x.textAlign='left';x.textBaseline='middle';x.fillStyle='#202124';x.font='600 32px system-ui';x.fillText(pTitle,116,58,760);
 x.font='26px system-ui';
 if(pStat){x.fillStyle='#5f6368';x.fillText(pStat,60,160,860)}
-x.fillStyle='#202124';
-for(let i=0;i<15;i++){const l=pLines[pScroll+i];if(l!==undefined)x.fillText(l,60,150+i*34,850)}
+if(pMode==='i'&&pImg){const k=pImg.naturalWidth/840,sh=Math.min(510*k,pImg.naturalHeight-pScroll);if(sh>0)x.drawImage(pImg,0,pScroll,pImg.naturalWidth,sh,60,130,840,sh/k)}
+else{x.fillStyle='#202124';for(let i=0;i<15;i++){const l=pLines[pScroll+i];if(l!==undefined)x.fillText(l,60,150+i*34,850)}}
 [[300,-1],[460,1]].forEach(([y,d])=>{x.fillStyle='#e8eaed';x.beginPath();x.arc(962,y,34,0,P2);x.fill();
 x.fillStyle='#5f6368';x.beginPath();x.moveTo(962-16,y+d*-8);x.lineTo(962+16,y+d*-8);x.lineTo(962,y+d*10);x.closePath();x.fill()});
 AW.t.needsUpdate=true}
 function press(k){flashK=k;drawKB();setTimeout(()=>{if(flashK===k){flashK=null;drawKB()}},150);
 if(k.t==='c'){if(q.length<100)q+=k.l}else if(k.t==='b')q=q.slice(0,-1);else if(k.t==='s'){if(q.length<100)q+=' '}else if(k.t==='g'){doSearch();return}
 drawG()}
+function pScrollBy(d){if(pMode==='i'&&pImg){const vh=510*pImg.naturalWidth/840;pScroll=Math.max(0,Math.min(Math.max(0,pImg.naturalHeight-vh),pScroll+d*vh*.8))}
+else pScroll=Math.max(0,Math.min(Math.max(0,pLines.length-15),pScroll+d*8))}
 function webClick(){if(!wHit)return;const{w,x,y}=wHit;
 if(w==='win'){
 if(Math.hypot(x-944,y-56)<44){closeApp();return}
 if(view==='p'){
 if(Math.hypot(x-60,y-56)<44){view='s';drawG();return}
-if(Math.hypot(x-962,y-300)<50){pScroll=Math.max(0,pScroll-8);drawG();return}
-if(Math.hypot(x-962,y-460)<50){pScroll=Math.min(Math.max(0,pLines.length-15),pScroll+8);drawG();return}
+if(Math.hypot(x-962,y-300)<50){pScrollBy(-1);drawG();return}
+if(Math.hypot(x-962,y-460)<50){pScrollBy(1);drawG();return}
 return}
 if(x>790&&x<920&&y>150&&y<226){doSearch();return}
 if(x>100&&x<930&&y>=242){const i=Math.floor((y-242)/80);if(res[i])openWiki(res[i].t)}
