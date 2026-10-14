@@ -395,9 +395,9 @@ const XT=mk(96,96,x=>{x.fillStyle='rgba(255,255,255,.88)';x.beginPath();x.arc(48
 xb.position.set(.5,.33,.003);xb.visible=false;appw.add(xb);
 const FT=mk(96,96,x=>{x.fillStyle='rgba(255,255,255,.88)';x.beginPath();x.arc(48,48,46,0,P2);x.fill();x.strokeStyle='#333';x.lineWidth=8;x.lineCap='round';x.lineJoin='round';x.beginPath();x.moveTo(22,34);x.lineTo(22,22);x.lineTo(34,22);x.moveTo(62,22);x.lineTo(74,22);x.lineTo(74,34);x.moveTo(74,62);x.lineTo(74,74);x.lineTo(62,74);x.moveTo(34,74);x.lineTo(22,74);x.lineTo(22,62);x.stroke()}),fsb=pl(.09,.09,FT.t);
 fsb.position.set(.5,.21,.003);fsb.visible=false;appw.add(fsb);
-function showMC(){if(!mcF){mcF=mcW.map(d=>{const f=document.createElement('iframe');f.width=1024;f.height=672;f.style.cssText='position:absolute;left:0;top:0;border:0;background:#fff;transform-origin:0 0';d.append(f);return f});loadMC()}
+function showMC(){if(!mcF){mcF=mcW.map(d=>{const f=document.createElement('iframe');f.width=1024;f.height=672;f.style.cssText='position:absolute;left:0;top:0;border:0;background:#fff;transform-origin:0 0;visibility:hidden';d.append(f);return f});loadMC()}
 const x=AW.x;x.clearRect(0,0,1024,672);x.fillStyle='#111';x.beginPath();x.roundRect(0,0,1024,672,48);x.fill();x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';x.font='bold 54px system-ui';x.fillText('Carregando Minecraft…',512,336,900);AW.t.needsUpdate=true;
-applyWin();appw.visible=true;xb.visible=true;fsb.visible=true;mcOn=true;mcFull=false;mcW.forEach(d=>d.style.visibility='visible')}
+applyWin();appw.visible=true;xb.visible=true;fsb.visible=true;mcOn=true;mcFull=false;if(mcLoaded)mcW.forEach(d=>d.style.visibility='visible')}
 async function inlineSite(url){
 const html=await (await fetch(url)).text(),doc=new DOMParser().parseFromString(html,'text/html'),abs=u=>new URL(u,url).href;
 const dataU=async u=>{const b=await (await fetch(abs(u))).blob();return await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b)})};
@@ -405,16 +405,23 @@ for(const im of [...doc.querySelectorAll('img[src]')]){try{im.src=await dataU(im
 for(const l of [...doc.querySelectorAll('link[rel=stylesheet][href]')]){try{const st=doc.createElement('style');st.textContent=await (await fetch(abs(l.getAttribute('href')))).text();l.replaceWith(st)}catch(e){}}
 for(const sc of [...doc.querySelectorAll('script[src]')]){try{const n=doc.createElement('script');n.textContent=await (await fetch(abs(sc.getAttribute('src')))).text();sc.replaceWith(n)}catch(e){}}
 return '<!DOCTYPE html>'+doc.documentElement.outerHTML}
+let mcLoaded=false;
 async function loadMC(){let ok=false;
 try{const h=await inlineSite(MCURL);mcF.forEach(f=>{f.setAttribute('sandbox','allow-scripts');f.srcdoc=h});ok=true}catch(e){}
-if(!ok)mcF.forEach(f=>{f.removeAttribute('sandbox');f.src=MCURL});mcReady=true}
+if(!ok)mcF.forEach(f=>{f.removeAttribute('sandbox');f.src=MCURL});
+const all=Promise.all(mcF.map(f=>new Promise(r=>f.addEventListener('load',()=>r(),{once:true}))));
+mcReady=true;
+await Promise.race([all,new Promise(r=>setTimeout(r,10000))]);
+await new Promise(r=>setTimeout(r,700));
+mcLoaded=true}
 function mcHide(){mcOn=false;mcFull=false;fsHover=false;mcW.forEach(d=>{d.style.visibility='hidden';d.style.background='transparent'});if(mcF)mcF.forEach(f=>f.style.visibility='hidden');mcExit.forEach(b=>b.style.display='none');mcCur.forEach(c=>c.style.display='none');xb.visible=false;fsb.visible=false}
 function hom(q,w,h){const[x0,y0]=q[0],[x1,y1]=q[1],[x2,y2]=q[2],[x3,y3]=q[3],sx=x0-x1+x2-x3,sy=y0-y1+y2-y3;let a,b,c,d,g=0,hh=0;
 if(Math.abs(sx)<1e-6&&Math.abs(sy)<1e-6){a=x1-x0;b=y1-y0;c=x3-x0;d=y3-y0}
 else{const dx1=x1-x2,dx2=x3-x2,dy1=y1-y2,dy2=y3-y2,den=dx1*dy2-dx2*dy1;g=(sx*dy2-dx2*sy)/den;hh=(dx1*sy-sx*dy1)/den;a=x1-x0+g*x1;b=y1-y0+g*y1;c=x3-x0+hh*x3;d=y3-y0+hh*y3}
 return 'matrix3d('+[a/w,b/w,0,g/w,c/h,d/h,0,hh/h,0,0,1,0,x0,y0,0,1].join(',')+')'}
 const mcV=new V3();
-function updateMC(){if(!mcOn||!mcF||!mcReady)return;
+function updateMC(){if(!mcOn||!mcF||!mcReady||!mcLoaded)return;
+mcW.forEach(d=>{if(d.style.visibility!=='visible')d.style.visibility='visible'});
 const ew=innerWidth/2,eh=innerHeight;
 if(mcFull){const iw=ew*.92,ih=eh*.92;
 mcW.forEach(d=>d.style.background='#000');
