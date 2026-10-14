@@ -285,7 +285,7 @@ if(gStat)x.fillText(gStat,112,290,800);else if(!res.length)x.fillText('Digite um
 res.slice(0,5).forEach((r,i)=>{const y=268+i*80;x.fillStyle='#1a0dab';x.font='600 30px system-ui';x.fillText(r.t,112,y,800);x.fillStyle='#4d5156';x.font='24px system-ui';x.fillText(r.s,112,y+36,800)});
 AW.t.needsUpdate=true}
 setInterval(()=>{if(appOpen==='Google'&&view==='s'){blink=!blink;drawG()}},500);
-function showG(){applyWin();appw.visible=true;kb.visible=true;drawG();drawKB()}
+function showG(){view='s';applyWin();appw.visible=true;kb.visible=true;drawG();drawKB()}
 async function getJ(u){const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);
 try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(t)}}
 async function doSearch(){const t=q.trim();if(!t)return;
@@ -329,13 +329,15 @@ const pg=Object.values(j.query.pages)[0];
 showText(pg.title||title,(pg.extract||'').replace(/^=+\s*(.+?)\s*=+$/gm,(m,a)=>'\n'+a.toUpperCase()))}
 catch(e){pStat='Falha ao abrir ('+((e&&e.message)||e)+')'}
 drawG()}
-function drawPage(){const x=AW.x;x.clearRect(0,0,1024,672);x.fillStyle='#fff';x.beginPath();x.roundRect(0,0,1024,672,48);x.fill();
-x.fillStyle='#f1f3f4';x.beginPath();x.roundRect(0,0,1024,112,[48,48,0,0]);x.fill();
-x.fillStyle='#fff';x.beginPath();x.arc(60,56,32,0,P2);x.fill();x.beginPath();x.arc(944,56,32,0,P2);x.fill();
-x.strokeStyle='#5f6368';x.lineWidth=6;x.lineCap='round';x.lineJoin='round';
-x.beginPath();x.moveTo(72,56);x.lineTo(46,56);x.moveTo(58,44);x.lineTo(46,56);x.lineTo(58,68);x.stroke();
-x.beginPath();x.moveTo(931,43);x.lineTo(957,69);x.moveTo(957,43);x.lineTo(931,69);x.stroke();
-x.textAlign='left';x.textBaseline='middle';x.fillStyle='#202124';x.font='600 32px system-ui';x.fillText(pTitle,116,58,760);
+function drawPage(){const x=AW.x,mc=appOpen==='Minecraft';x.clearRect(0,0,1024,672);x.fillStyle='#fff';x.beginPath();x.roundRect(0,0,1024,672,48);x.fill();
+x.fillStyle=mc?'#2b2b2b':'#f1f3f4';x.beginPath();x.roundRect(0,0,1024,112,[48,48,0,0]);x.fill();
+x.fillStyle=mc?'rgba(255,255,255,.18)':'#fff';x.beginPath();x.arc(944,56,32,0,P2);x.fill();
+x.strokeStyle=mc?'#fff':'#5f6368';x.lineWidth=6;x.lineCap='round';x.lineJoin='round';
+if(!mc){x.fillStyle='#fff';x.beginPath();x.arc(60,56,32,0,P2);x.fill();x.strokeStyle='#5f6368';x.beginPath();x.moveTo(72,56);x.lineTo(46,56);x.moveTo(58,44);x.lineTo(46,56);x.lineTo(58,68);x.stroke()}
+x.strokeStyle=mc?'#fff':'#5f6368';x.beginPath();x.moveTo(931,43);x.lineTo(957,69);x.moveTo(957,43);x.lineTo(931,69);x.stroke();
+x.textAlign='left';x.textBaseline='middle';
+if(mc){const im=GI.Minecraft;if(im&&im.complete&&im.naturalWidth)x.drawImage(im,36,24,64,64);x.fillStyle='#fff';x.font='bold 40px system-ui';x.fillText('Minecraft',116,58,760)}
+else{x.fillStyle='#202124';x.font='600 32px system-ui';x.fillText(pTitle,116,58,760)}
 x.font='26px system-ui';
 if(pStat){x.fillStyle='#5f6368';x.fillText(pStat,60,160,860)}
 if(pMode==='i'&&pImg){const k=pImg.naturalWidth/840,sh=Math.min(510*k,pImg.naturalHeight-pScroll);if(sh>0)x.drawImage(pImg,0,pScroll,pImg.naturalWidth,sh,60,130,840,sh/k)}
@@ -352,7 +354,7 @@ function webClick(){if(!wHit)return;const{w,x,y}=wHit;
 if(w==='win'){
 if(Math.hypot(x-944,y-56)<44){closeApp();return}
 if(view==='p'){
-if(Math.hypot(x-60,y-56)<44){view='s';drawG();return}
+if(appOpen!=='Minecraft'&&Math.hypot(x-60,y-56)<44){view='s';drawG();return}
 if(Math.hypot(x-962,y-300)<50){pScrollBy(-1);drawG();return}
 if(Math.hypot(x-962,y-460)<50){pScrollBy(1);drawG();return}
 return}
@@ -361,8 +363,6 @@ if(x>100&&x<930&&y>=242){const i=Math.floor((y-242)/80);if(res[i])openWiki(res[i
 return}
 const k=KEYS.find(k=>x>=k.x&&x<=k.x+k.w&&y>=k.y&&y<=k.y+k.h);if(k)press(k)}
 let hoverH=null,dragMode=null,dOffY=0,dOffP=0,dS0=1,dD0=1;const PL=new THREE.Plane(),RY=new THREE.Ray(),hp=new V3(),tn=new V3();
-function pAngles(){rd.copy(pRay).applyQuaternion(head.quaternion).normalize();return[Math.atan2(rd.x,-rd.z),Math.asin(Math.max(-1,Math.min(1,rd.y)))]}
-function planeDist(){tn.set(0,0,1).applyQuaternion(appw.quaternion);PL.setFromNormalAndCoplanarPoint(tn,appw.position);rd.copy(pRay).applyQuaternion(head.quaternion).normalize();RY.set(head.position,rd);const h=RY.intersectPlane(PL,hp);return h?hp.distanceTo(appw.position):0}
 function gz(){rd.set(0,0,-1).applyQuaternion(head.quaternion);return[Math.atan2(rd.x,-rd.z),Math.asin(Math.max(-1,Math.min(1,rd.y)))]}
 function gazeDist(){tn.set(0,0,1).applyQuaternion(appw.quaternion);PL.setFromNormalAndCoplanarPoint(tn,appw.position);rd.set(0,0,-1).applyQuaternion(head.quaternion);RY.set(head.position,rd);const h=RY.intersectPlane(PL,hp);return h?hp.distanceTo(appw.position):0}
 function startDrag(o){dragMode=o===bar?'m':o===corner?'r':null}
@@ -372,63 +372,19 @@ function endDrag(){dragMode=null}
 function tapHandle(o){if(o===bar){WS.y=Math.abs(WS.y)<.1?Math.atan2(2.1,1.6):0;WS.p=.04}else WS.s=WS.s<1.8?2.6:WS.s<3?3.6:1.5;applyWin()}
 function rayHit(){wHit=null;let hk=null,hh=null;
 if(appOpen){rd.copy(pRay).applyQuaternion(head.quaternion).normalize();RC.set(head.position,rd);
-const list=[appw,bar,corner];if(appOpen==='Minecraft'){list.push(xb);if(!mcFull)list.push(fsb)}if(appOpen==='Google')list.push(kb);
+const list=[appw,bar,corner];if(appOpen==='Google')list.push(kb);
 const h=RC.intersectObjects(list,false)[0];
-if(h){if(h.object===bar||h.object===corner||h.object===xb||h.object===fsb)hh=h.object;
-else if(appOpen==='Google'&&h.uv){const isK=h.object===kb;wHit={w:isK?'kb':'win',x:h.uv.x*1024,y:(1-h.uv.y)*(isK?KH:672)};
+if(h){if(h.object===bar||h.object===corner)hh=h.object;
+else if((appOpen==='Google'||appOpen==='Minecraft')&&h.uv){const isK=h.object===kb;wHit={w:isK?'kb':'win',x:h.uv.x*1024,y:(1-h.uv.y)*(isK?KH:672)};
 if(isK)hk=KEYS.find(k=>wHit.x>=k.x&&wHit.x<=k.x+k.w&&wHit.y>=k.y&&wHit.y<=k.y+k.h)||null}}}
 if(dragMode)hh=dragMode==='m'?bar:corner;
 if(hk!==hoverK){hoverK=hk;drawKB()}
-if(hh!==hoverH){hoverH=hh;bar.material.color.setHex(hh===bar?0x9fffb0:0xffffff);corner.material.color.setHex(hh===corner?0x9fffb0:0xffffff);xb.material.color.setHex(hh===xb?0x9fffb0:0xffffff);fsb.material.color.setHex(hh===fsb?0x9fffb0:0xffffff)}}
-/* Minecraft: página (iframe) sobre a janela */
+if(hh!==hoverH){hoverH=hh;bar.material.color.setHex(hh===bar?0x9fffb0:0xffffff);corner.material.color.setHex(hh===corner?0x9fffb0:0xffffff)}}
+
+/* Minecraft: abre o site dentro da própria janela flutuante, como um app (sem endereço, só o nome) */
 const MCURL='https://patzpha.github.io/Minecraftlogo1.github.io/';
-const mcW=['mcL','mcR'].map((id,k)=>{const d=document.createElement('div');d.id=id;d.style.cssText='position:fixed;top:0;height:100%;width:50%;left:'+(k*50)+'%;overflow:hidden;pointer-events:none;z-index:50;visibility:hidden';document.body.append(d);return d});
-let mcF=null,mcOn=false,mcReady=false,mcFull=false,fsHover=false;
-const mcExit=[],mcCur=[];
-mcW.forEach(d=>{const b=document.createElement('div');b.style.cssText='position:absolute;right:24px;top:24px;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.88);display:none;z-index:5;pointer-events:auto;align-items:center;justify-content:center';
-b.innerHTML='<svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="#222" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5v8H5M21 5v8h8M13 29v-8H5M21 29v-8h8"/></svg>';b.onclick=()=>setFull(false);d.append(b);mcExit.push(b);
-const c=document.createElement('div');c.style.cssText='position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border:4px solid #fff;border-radius:50%;box-shadow:0 0 6px #000;display:none;z-index:6;pointer-events:none';d.append(c);mcCur.push(c)});
-function setFull(v){mcFull=!!v&&appOpen==='Minecraft';fsb.visible=!mcFull&&appOpen==='Minecraft';mcExit.forEach(b=>b.style.display=mcFull?'flex':'none');mcCur.forEach(c=>c.style.display=mcFull?'block':'none');if(!mcFull){fsHover=false;mcW.forEach(d=>d.style.background='transparent')}}
-const XT=mk(96,96,x=>{x.fillStyle='rgba(255,255,255,.88)';x.beginPath();x.arc(48,48,46,0,P2);x.fill();x.strokeStyle='#333';x.lineWidth=9;x.lineCap='round';x.beginPath();x.moveTo(32,32);x.lineTo(64,64);x.moveTo(64,32);x.lineTo(32,64);x.stroke()}),xb=pl(.09,.09,XT.t);
-xb.position.set(.5,.33,.003);xb.visible=false;appw.add(xb);
-const FT=mk(96,96,x=>{x.fillStyle='rgba(255,255,255,.88)';x.beginPath();x.arc(48,48,46,0,P2);x.fill();x.strokeStyle='#333';x.lineWidth=8;x.lineCap='round';x.lineJoin='round';x.beginPath();x.moveTo(22,34);x.lineTo(22,22);x.lineTo(34,22);x.moveTo(62,22);x.lineTo(74,22);x.lineTo(74,34);x.moveTo(74,62);x.lineTo(74,74);x.lineTo(62,74);x.moveTo(34,74);x.lineTo(22,74);x.lineTo(22,62);x.stroke()}),fsb=pl(.09,.09,FT.t);
-fsb.position.set(.5,.21,.003);fsb.visible=false;appw.add(fsb);
-function showMC(){if(!mcF){mcF=mcW.map(d=>{const f=document.createElement('iframe');f.width=1024;f.height=672;f.style.cssText='position:absolute;left:0;top:0;border:0;background:#fff;transform-origin:0 0';d.append(f);return f});loadMC()}
-const x=AW.x;x.clearRect(0,0,1024,672);x.fillStyle='#111';x.beginPath();x.roundRect(0,0,1024,672,48);x.fill();x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';x.font='bold 54px system-ui';x.fillText('Carregando Minecraft…',512,336,900);AW.t.needsUpdate=true;
-applyWin();appw.visible=true;xb.visible=true;fsb.visible=true;mcOn=true;mcFull=false;mcW.forEach(d=>d.style.visibility='visible')}
-async function inlineSite(url){
-const html=await (await fetch(url)).text(),doc=new DOMParser().parseFromString(html,'text/html'),abs=u=>new URL(u,url).href;
-const dataU=async u=>{const b=await (await fetch(abs(u))).blob();return await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b)})};
-for(const im of [...doc.querySelectorAll('img[src]')]){try{im.src=await dataU(im.getAttribute('src'));im.removeAttribute('srcset')}catch(e){}}
-for(const l of [...doc.querySelectorAll('link[rel=stylesheet][href]')]){try{const st=doc.createElement('style');st.textContent=await (await fetch(abs(l.getAttribute('href')))).text();l.replaceWith(st)}catch(e){}}
-for(const sc of [...doc.querySelectorAll('script[src]')]){try{const n=doc.createElement('script');n.textContent=await (await fetch(abs(sc.getAttribute('src')))).text();sc.replaceWith(n)}catch(e){}}
-return '<!DOCTYPE html>'+doc.documentElement.outerHTML}
-async function loadMC(){let ok=false;
-try{const h=await inlineSite(MCURL);mcF.forEach(f=>{f.setAttribute('sandbox','allow-scripts');f.srcdoc=h});ok=true}catch(e){}
-if(!ok)mcF.forEach(f=>{f.removeAttribute('sandbox');f.src=MCURL});mcReady=true}
-function mcHide(){mcOn=false;mcFull=false;fsHover=false;mcW.forEach(d=>{d.style.visibility='hidden';d.style.background='transparent'});if(mcF)mcF.forEach(f=>f.style.visibility='hidden');mcExit.forEach(b=>b.style.display='none');mcCur.forEach(c=>c.style.display='none');xb.visible=false;fsb.visible=false}
-function hom(q,w,h){const[x0,y0]=q[0],[x1,y1]=q[1],[x2,y2]=q[2],[x3,y3]=q[3],sx=x0-x1+x2-x3,sy=y0-y1+y2-y3;let a,b,c,d,g=0,hh=0;
-if(Math.abs(sx)<1e-6&&Math.abs(sy)<1e-6){a=x1-x0;b=y1-y0;c=x3-x0;d=y3-y0}
-else{const dx1=x1-x2,dx2=x3-x2,dy1=y1-y2,dy2=y3-y2,den=dx1*dy2-dx2*dy1;g=(sx*dy2-dx2*sy)/den;hh=(dx1*sy-sx*dy1)/den;a=x1-x0+g*x1;b=y1-y0+g*y1;c=x3-x0+hh*x3;d=y3-y0+hh*y3}
-return 'matrix3d('+[a/w,b/w,0,g/w,c/h,d/h,0,hh/h,0,0,1,0,x0,y0,0,1].join(',')+')'}
-const mcV=new V3();
-function updateMC(){if(!mcOn||!mcF||!mcReady)return;
-const ew=innerWidth/2,eh=innerHeight;
-if(mcFull){const iw=ew*.92,ih=eh*.92;
-mcW.forEach(d=>d.style.background='#000');
-mcF.forEach(f=>{const t=f.style;t.visibility='visible';t.width=iw+'px';t.height=ih+'px';t.left=(ew-iw)/2+'px';t.top=(eh-ih)/2+'px';t.transform='none'});
-const cam=E[0];cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
-rd.copy(pRay).applyQuaternion(head.quaternion);mcV.copy(head.position).addScaledVector(rd,1).applyMatrix4(cam.matrixWorldInverse);
-const behind=mcV.z>-.05;mcV.applyMatrix4(cam.projectionMatrix);const px=(mcV.x+1)/2*ew,py=(1-mcV.y)/2*eh;
-fsHover=!behind&&px>ew-104&&px<ew-8&&py>8&&py<104;
-mcCur.forEach(c=>{c.style.display=behind?'none':'block';c.style.left=px+'px';c.style.top=py+'px';c.style.borderColor=fsHover?'#5be07a':'#fff'});
-mcExit.forEach(b=>b.style.background=fsHover?'#9fffb0':'rgba(255,255,255,.88)');
-return}
-mcW.forEach(d=>d.style.background='transparent');
-const LC=[[-.45,.295],[.45,.295],[.45,-.295],[-.45,-.295]];
-for(let e=0;e<2;e++){const cam=E[e];cam.matrixWorldInverse.copy(cam.matrixWorld).invert();let ok=true;const q=[];
-for(let i=0;i<4;i++){mcV.set(LC[i][0],LC[i][1],0);appw.localToWorld(mcV);mcV.applyMatrix4(cam.matrixWorldInverse);if(mcV.z>-.05){ok=false;break}mcV.applyMatrix4(cam.projectionMatrix);q.push([(mcV.x+1)/2*ew,(1-mcV.y)/2*eh])}
-const f=mcF[e],t=f.style;if(!ok){t.visibility='hidden';continue}t.visibility='visible';t.width='1024px';t.height='672px';t.left='0px';t.top='0px';t.transform=hom(q,1024,672)}}
+function showMC(){applyWin();appw.visible=true;kb.visible=false;openUrl(MCURL)}
+
 function openApp(n){appOpen=n;if(n==='Google'){showG();return}if(n==='Minecraft'){showMC();return}const x=AW.x,A=APPS.find(a=>a[0]===n)||[n,'#888','#444'],im=GI[n];
 x.clearRect(0,0,1024,672);x.fillStyle='rgba(24,22,32,.97)';x.beginPath();x.roundRect(0,0,1024,672,48);x.fill();
 const g=x.createLinearGradient(0,0,1024,0);g.addColorStop(0,A[1]);g.addColorStop(1,A[2]);
@@ -446,8 +402,8 @@ x.font='30px system-ui';x.fillStyle='#aaa7b5';x.fillText('Clique para fechar',51
 x.fillStyle='rgba(255,255,255,.08)';[0,1,2].forEach(i=>{x.beginPath();x.roundRect(70+i*296,574,284,56,28);x.fill()});
 AW.t.needsUpdate=true;
 applyWin();appw.visible=true}
-function closeApp(){appOpen=null;appw.visible=false;kb.visible=false;mcHide()}
-function launch(g,dr){if(appOpen==='Minecraft'&&mcFull){if(fsHover)setFull(false);return}if(appOpen){if(hoverH){if(hoverH===xb){closeApp();return}if(hoverH===fsb){setFull(true);return}if(dr&&handOn)startDrag(hoverH);else tapHandle(hoverH);return}if(appOpen==='Google')webClick();else if(appOpen!=='Minecraft')closeApp();return}if(!g)return;say('Abrindo '+g.userData.name+'… olhe à direita');g.userData.pulse=performance.now();openApp(g.userData.name)}
+function closeApp(){appOpen=null;view='s';pImg=null;pTitle='';appw.visible=false;kb.visible=false}
+function launch(g,dr){if(appOpen){if(hoverH){if(dr&&handOn)startDrag(hoverH);else tapHandle(hoverH);return}if(appOpen==='Google'||appOpen==='Minecraft')webClick();else closeApp();return}if(!g)return;say('Abrindo '+g.userData.name+'… olhe à direita');g.userData.pulse=performance.now();openApp(g.userData.name)}
 
 /* giroscópio */
 let haveOri=false,mode='arrastar tela',dyaw=0,dpit=0;
@@ -478,7 +434,7 @@ if(dofP.length()>.7)dofP.setLength(.7)});
 
 /* toque */
 let dragTouch=false,drag=null,tapT=0,tapX=0,tapY=0;
-cv.addEventListener('pointerdown',e=>{if(!handOn&&appOpen&&hoverH&&!mcFull){if(hoverH===xb){closeApp();return}if(hoverH===fsb){setFull(true);return}startDrag(hoverH);dragTouch=true;return}drag={x:e.clientX,y:e.clientY};tapT=performance.now();tapX=e.clientX;tapY=e.clientY});
+cv.addEventListener('pointerdown',e=>{if(!handOn&&appOpen&&hoverH){startDrag(hoverH);dragTouch=true;return}drag={x:e.clientX,y:e.clientY};tapT=performance.now();tapX=e.clientX;tapY=e.clientY});
 cv.addEventListener('pointermove',e=>{if(!drag||haveOri)return;dyaw+=(e.clientX-drag.x)*.005;dpit=Math.max(-1.4,Math.min(1.4,dpit+(e.clientY-drag.y)*.005));drag={x:e.clientX,y:e.clientY}});
 cv.addEventListener('pointerup',e=>{if(dragTouch){dragTouch=false;endDrag();drag=null;return}drag=null;if(performance.now()-tapT<350&&Math.hypot(e.clientX-tapX,e.clientY-tapY)<12){if(!handOn&&(hover||appOpen))launch(hover);else recenter()}});
 
@@ -590,7 +546,6 @@ if(ripT){const p=(now-ripT)/450;if(p>=1){ripT=0;rip.material.opacity=0}else{rip.
 const isSil=D.hstyle!=='3d';joints.forEach(m=>m.visible=!isSil);bones.forEach(m=>m.visible=!isSil);psM.forEach(m=>m.visible=!isSil);fore.visible=!isSil;if(isSil){aura.visible=false;pts.visible=false}
 drawSil(handOn&&isSil);
 interact(now);
-updateMC();
 if(fadeS){const p=(now-fadeS)/800;if(p>=.5&&!fadeSw){fadeSw=true;setVR(!vr)}if(p>=1){fadeS=0;fade.visible=false}else{fade.visible=true;fade.material.opacity=1-Math.abs(p*2-1)}}
 waterM.uniforms.t.value=now/1000;
 if(toast.visible&&now>toastT)toast.visible=false;
